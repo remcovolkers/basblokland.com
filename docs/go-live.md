@@ -97,6 +97,40 @@ hour, never "Bas published and nothing ever happened". Details:
 - Scheduled runs can be delayed or, under heavy GitHub load, dropped (GitHub's own warning). It is a safety
   net, not a guarantee.
 
+#### If "Publiceren" does not start a run
+
+Two **separate** things can be wrong; check both:
+
+1. **The site does not read Sanity at all yet.** Until the variable in step 4 is set, a rebuild produces the
+   same placeholder site, so even a perfect webhook shows nothing new. (How to see which one you are
+   looking at: the live footer says `prototype / placeholder content` = fixtures; just `prototype` = Sanity.)
+2. **The webhook does not arrive or is rejected.** Open it in Sanity (sanity.io/manage -> project -> API ->
+   Webhooks) and read its attempt log for the publish. The status code says what is wrong (typical GitHub API
+   behaviour, not verified against this repo):
+
+| Status in the log | Usual cause |
+| --- | --- |
+| no attempt at all | webhook disabled, **Update** not ticked under *Trigger on*, wrong dataset, or the filter does not match |
+| 204 | GitHub accepted it. Then look in Actions for event `repository_dispatch`; if none, `event_type` is not exactly `sanity-publish` |
+| 401 | token typo, expired, or the header is not `Authorization` = `Bearer <token>` (name and value are separate fields) |
+| 403 | missing `User-Agent` header (GitHub rejects requests without one), or the token lacks **Contents: write** |
+| 404 | the token was not given access to *this* repository (GitHub answers 404 instead of 403), or a typo in the URL |
+| 422 | the body is wrong: the projection was not applied, so there is no `event_type` |
+
+**Test the token and repo without Sanity** (type the token locally; never paste it anywhere else). In PowerShell:
+
+```powershell
+$s = Read-Host "Paste the token" -AsSecureString
+$t = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($s))
+Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/remcovolkers/basblokland.com/dispatches" `
+  -Headers @{ Authorization = "Bearer $t"; Accept = "application/vnd.github+json"; "User-Agent" = "manual-test" } `
+  -ContentType "application/json" -Body '{"event_type":"sanity-publish"}'
+```
+
+No output = HTTP 204 = GitHub accepted it, and a run with event `repository_dispatch` should appear in Actions
+within seconds. An error shows the status code from the table above. If this works, the token and repo are fine
+and the problem is in the Sanity webhook settings.
+
 ### 4. Switch the site to the real content
 Only after step 1 of "How placeholders disappear" (otherwise the live site is nearly empty):
 
