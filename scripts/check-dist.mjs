@@ -135,6 +135,8 @@ for (const file of htmlFiles) {
   } else {
     if (hasNoindex && page !== '/404.html') err(page, 'production build contains noindex');
     if (hasProtoLine) err(page, 'production build contains the prototype footer line');
+    // Placeholder content (isPlaceholder fixtures) is marked data-placeholder and must never ship.
+    if (/\sdata-placeholder\b/.test(html)) err(page, 'production build contains placeholder content (data-placeholder)');
   }
 }
 

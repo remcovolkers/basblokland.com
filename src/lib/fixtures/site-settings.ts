@@ -1,11 +1,14 @@
 import type { SiteSettings } from '../types';
 
 /**
- * PLACEHOLDER. This repo is public, so no real personal data lives here.
- * The email is a stand-in until Bas approves his real address; it then moves to
- * the Sanity `siteSettings` document, never into code.
+ * PLACEHOLDER. The e-mail is a stand-in until Bas's real address is entered in the Sanity
+ * `siteSettings` document. In production this fixture is never used (placeholders are hidden).
+ * The home statement is also a stand-in: its wording has not been confirmed as Bas's own.
  */
 export const siteSettingsFixture: SiteSettings = {
-  email: 'remco.volkers1@gmail.com',
   isPlaceholder: true,
+  homeStatement: 'physical work, small objects, sound and material.',
+  email: 'remco.volkers1@gmail.com',
+  statusLine: 'placeholder status line',
+  colophon: 'Placeholder colophon text.',
 };
