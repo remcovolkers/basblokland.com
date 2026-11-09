@@ -14,7 +14,8 @@
     "verify": "node scripts/check-dist.mjs",
     "verify:src": "node scripts/check-src.mjs",
     "brand": "node scripts/build-brand-assets.mjs",
-    "test:sanity": "node scripts/test-sanity.ts"
+    "test:sanity": "node scripts/test-sanity.ts",
+    "content:status": "node scripts/content-status.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

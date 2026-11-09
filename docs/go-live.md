@@ -1,0 +1,94 @@
+# From placeholders to Bas's real content
+
+For Remco. Domain and Cloudflare are deliberately **not** part of this: they wait until Bas has time
+(see [domain-move.md](domain-move.md)). This is about the GitHub Pages prototype showing only real
+content, and Bas being able to publish without you.
+
+## Where things stand
+
+- The Studio is live at `https://basblokland.sanity.studio`; project `p9agaeq5`, public dataset `production`.
+- The live prototype still builds from the **local placeholder fixtures**, because the repository variable
+  `SANITY_PROJECT_ID` is not set.
+- The dataset holds two **test works** ("Forever logo", "Dikke bling broer"). There is no `Instellingen` or
+  `Over` document yet.
+- Publishing in the Studio does **not** yet update the site: the site only rebuilds when you push to GitHub.
+  Step 3 fixes that.
+
+`npm run content:status` prints this picture from the real project (what is missing, which works have
+problems) and exits non-zero while something important is missing.
+
+## How placeholders disappear
+
+Placeholders are not scattered around the code: they live in `src/lib/fixtures/` and are used **only**
+when no `SANITY_PROJECT_ID` is set. Once the variable is set, a build contains no fixture content and not
+even the placeholder image files (checked against the real project). So the work is:
+
+1. **Fill in the real content** (Bas, or you with him): Instellingen, Over, real works. Run
+   `npm run content:status` until it says READY.
+2. **Delete the two test works** in the Studio (menu **Kunst** / **Sieraden**, open the work, **Verwijderen**).
+   Uploaded test images stay in Sanity's media library; harmless.
+3. **Set the variable** (below). Then the site shows only what is published.
+
+The fixtures stay in the repo on purpose (local design work without a project, and the unit tests); they
+can never reach a deploy that has the variable.
+
+Still English copy that needs Bas's OK (it is not placeholder data, but nobody has confirmed it):
+- jewelry index intro: "Jewelry is not sold through a shop. To buy or commission a piece, get in touch."
+- the fallback home heading is just his name; his own statement goes in **Instellingen**.
+
+## The order to do things in
+
+### 1. Ship what is already built
+- `git push` (nothing changes on the live site: still fixtures, no variable yet).
+- Studio: `cd studio` then `npm run deploy`, so the hosted Studio gets the new tabs and dialog styling.
+
+### 2. Invite Bas
+https://www.sanity.io/manage -> project -> **Members** -> invite his e-mail as **Editor**. Send him
+[handleiding-bas.md](handleiding-bas.md) (Dutch) and `https://basblokland.sanity.studio`.
+
+### 3. Make "Publiceren" update the site (the webhook)
+Chain: Sanity publish -> webhook -> GitHub `repository_dispatch` (`sanity-publish`) -> the existing
+workflow rebuilds and deploys. The workflow already listens for that event.
+
+**a. A GitHub token** (needs your GitHub account):
+https://github.com/settings/personal-access-tokens/new -> *Resource owner*: you -> *Repository access*:
+**Only select repositories** -> `basblokland.com` -> *Repository permissions* -> **Contents: Read and
+write** (GitHub's permission table lists `POST /repos/{owner}/{repo}/dispatches` under Contents: write)
+-> generate and copy the token once. Give it a long expiry and put the date in your calendar: when it
+expires, publishing silently stops updating the site.
+
+**b. The Sanity webhook:** https://www.sanity.io/manage -> project -> **API** -> **Webhooks** -> create:
+
+| Field | Value |
+| --- | --- |
+| Name | `GitHub rebuild` |
+| URL | `https://api.github.com/repos/remcovolkers/basblokland.com/dispatches` |
+| Dataset | `production` |
+| Trigger on | Create, Update, Delete |
+| Filter | `_type in ["work", "labEntry", "about", "siteSettings"]` |
+| Projection | `{"event_type": "sanity-publish"}` |
+| HTTP method | POST |
+| HTTP headers | `Authorization: Bearer <the token>`, `Accept: application/vnd.github+json`, `User-Agent: sanity-webhook` |
+| Drafts and versions | leave **off** (then it only fires on real publishes, not on every keystroke) |
+
+**c. Test it:** publish a small change, then watch GitHub -> Actions for a run whose event is
+`repository_dispatch`, and the webhook's **attempts log** in Sanity for HTTP **204**.
+
+Unverified: whether Sanity accepts a constant projection like `{"event_type": "sanity-publish"}` (its docs do not
+say; the attempts log will). If it is rejected: HTTP 422 from GitHub. Fallback without a token: add a
+`schedule:` cron trigger to `.github/workflows/deploy.yml` (rebuild every 30 minutes or hourly); less
+immediate, but nothing can expire. Say if you want that instead.
+
+### 4. Switch the site to the real content
+Only after step 1 of "How placeholders disappear" (otherwise the live site is nearly empty):
+
+GitHub -> Settings -> Secrets and variables -> Actions -> **Variables** -> New repository variable:
+`SANITY_PROJECT_ID` = `p9agaeq5`. Then Actions -> **Run workflow**. The footer then says just
+"prototype" (the "placeholder content" wording only appears with fixtures).
+
+### 5. Check
+`npm run content:status`, then open the live site and compare with the Studio: footer e-mail, `/contact`,
+`/about`, one work with photos and audio, the carousel.
+
+## Later (with Bas)
+Domain, DNS and the move to Cloudflare Pages: [domain-move.md](domain-move.md). Remember the MX warning there.
