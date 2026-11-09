@@ -48,7 +48,7 @@ provider with a CNAME to `<project>.pages.dev`.
    - Environment variables (Production):
      `NODE_VERSION=24`, `SITE_URL=https://basblokland.com`, `BASE_PATH=/`
    - Do **not** set `PUBLIC_PROTOTYPE`. Unset means production: no noindex, sitemap included, no
-     "prototype" footer. The build's `verify` step fails if any of that leaks.
+     placeholder content. The build's `verify` step fails if any of that leaks.
 2. **Test on the `*.pages.dev` URL first.** The site must work at base `/` there. Keep the GitHub
    Pages prototype running meanwhile.
 3. **Decide where DNS lives.**
@@ -92,7 +92,7 @@ Do not create a `CNAME` file (see above).
 ## Checklist after switching (either route)
 
 - [ ] `https://basblokland.com/` loads over HTTPS; `http://` redirects to `https://`
-- [ ] View source: **no** `noindex`, **no** "prototype / placeholder content" in the footer
+- [ ] View source: **no** `noindex`, **no** `data-placeholder` content anywhere
 - [ ] `https://basblokland.com/sitemap-index.xml` exists
 - [ ] Open `/art/`, `/about/`, a made-up URL (should show the 404 page), and the favicon
 - [ ] Canonical and `og:image` URLs start with `https://basblokland.com/`

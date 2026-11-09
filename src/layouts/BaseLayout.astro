@@ -44,6 +44,8 @@ const ogImageUrl = absoluteUrl(ogImage, Astro.site);
     <meta name="description" content={description} />
     {canonical && <link rel="canonical" href={canonical} />}
     {(isPrototype || noindex) && <meta name="robots" content="noindex, nofollow" />}
+    <!-- Invisible, for debugging: "sanity" = built from the CMS, "fixtures" = built from the local placeholders. -->
+    <meta name="content-source" content={contentSource} />
 
     <link rel="icon" href={url('/favicon.svg')} type="image/svg+xml" />
     <link rel="apple-touch-icon" href={url('/apple-touch-icon.png')} sizes="180x180" />

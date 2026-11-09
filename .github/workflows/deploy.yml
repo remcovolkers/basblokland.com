@@ -33,7 +33,7 @@ jobs:
     if: ${{ github.event_name != 'schedule' || vars.SANITY_PROJECT_ID != '' }}
     runs-on: ubuntu-latest
     env:
-      # The GitHub Pages site is the prototype: noindex, no sitemap, "prototype" footer line.
+      # The GitHub Pages site is the prototype: noindex, no sitemap.
       # Override with a repository *variable* PUBLIC_PROTOTYPE=false (Settings -> Secrets and
       # variables -> Actions -> Variables) only when this site becomes the real one.
       PUBLIC_PROTOTYPE: ${{ vars.PUBLIC_PROTOTYPE || 'true' }}

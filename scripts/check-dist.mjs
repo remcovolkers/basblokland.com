@@ -7,8 +7,8 @@
 //  - #fragment links point at an id that exists on that page
 //  - no external scripts, stylesheets, fonts or images (no CDNs, no Google Fonts)
 //  - no zoom lock in the viewport meta
-//  - prototype mode: noindex on every page, no sitemap, "prototype" footer line
-//    production mode: none of those (404.html stays noindex)
+//  - prototype mode: noindex on every page, no sitemap
+//    production mode: neither (404.html stays noindex), and no placeholder content
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 
@@ -170,14 +170,10 @@ for (const file of htmlFiles) {
 
   // prototype flag behaviour
   const hasNoindex = /<meta name="robots" content="[^"]*noindex/i.test(html);
-  // The footer line: "prototype" (Sanity content) or "prototype / placeholder content" (fixtures).
-  const hasProtoLine = /<span>\s*prototype(?: \/ placeholder content)?\s*<\/span>/i.test(html);
   if (prototypeExpected) {
     if (!hasNoindex) err(page, 'prototype build is missing <meta name="robots" content="noindex, nofollow">');
-    if (!hasProtoLine) err(page, 'prototype build is missing the "prototype / placeholder content" footer line');
   } else {
     if (hasNoindex && page !== '/404.html') err(page, 'production build contains noindex');
-    if (hasProtoLine) err(page, 'production build contains the prototype footer line');
     // Placeholder content (isPlaceholder fixtures) is marked data-placeholder and must never ship.
     if (/\sdata-placeholder\b/.test(html)) err(page, 'production build contains placeholder content (data-placeholder)');
   }

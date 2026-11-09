@@ -1,11 +1,12 @@
 ---
 /**
- * Compact footer bar. It lives in the pinned bottom dock (see BaseLayout), so these lines stay in
- * view while the page scrolls. One line on desktop; wraps to a few short lines on a phone.
+ * Compact footer bar. It lives in the pinned bottom dock (see BaseLayout), so this line stays in
+ * view while the page scrolls. Just one contact line: the Instagram handle (the full contact
+ * details live on /contact). Without an Instagram handle it falls back to the e-mail address, so the
+ * footer is never empty. The © line is dropped on phones to save height.
  */
 import { getSiteSettings } from '../lib/content';
-import { contentSource } from '../lib/sanity/config';
-import { isPrototype, wordmark } from '../lib/site';
+import { wordmark } from '../lib/site';
 
 const settings = getSiteSettings();
 const { email, instagram } = settings;
@@ -15,29 +16,21 @@ const linkClass = 'inline-flex min-h-11 items-center hover:text-secondary';
 
 <footer class="border-t border-outline-variant bg-surface-container-high px-page">
   <div
-    class="mx-auto flex max-w-[90rem] flex-wrap items-center justify-between gap-x-space-lg font-meta-mono text-meta-mono uppercase text-on-surface-variant"
+    class="mx-auto flex max-w-[90rem] items-center justify-between gap-x-space-lg font-meta-mono text-meta-mono uppercase text-on-surface-variant"
   >
-    <div class="flex flex-wrap items-center gap-x-space-lg">
-      {
+    {
+      instagram ? (
+        <a class={linkClass} href={`https://instagram.com/${instagram}`} rel="noopener" target="_blank">
+          @{instagram}
+        </a>
+      ) : (
         email && (
           <a class={linkClass} href={`mailto:${email}`} data-placeholder={settings.isPlaceholder ? '' : undefined}>
             {email}
           </a>
         )
-      }
-      {
-        instagram && (
-          <a class={linkClass} href={`https://instagram.com/${instagram}`} rel="noopener" target="_blank">
-            @{instagram}
-          </a>
-        )
-      }
-    </div>
-    <p class="flex flex-wrap items-center gap-x-space-lg pb-space-xs text-outline md:pb-0">
-      <!-- The © line is dropped on phones to save height (the pinned dock is already 3 rows there). -->
-      <span class="hidden md:inline">© {year} {wordmark}</span>
-      <!-- "placeholder content" only while the local fixtures are in use; with Sanity the content is real. -->
-      {isPrototype && <span>prototype{contentSource === 'fixtures' && ' / placeholder content'}</span>}
-    </p>
+      )
+    }
+    <p class="hidden text-outline md:block">© {year} {wordmark}</p>
   </div>
 </footer>

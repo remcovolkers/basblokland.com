@@ -41,7 +41,7 @@ public) under Settings → Secrets and variables → Actions → Variables:
 | --- | --- | --- |
 | `SANITY_PROJECT_ID` | unset | set: the build reads published content from Sanity; unset: local placeholder fixtures (see [studio.md](studio.md)) |
 | `SANITY_DATASET` | `production` | the dataset to read (must be public, no token is used) |
-| `PUBLIC_PROTOTYPE` | `true` | `noindex, nofollow`, no sitemap, "prototype" footer line (plus "/ placeholder content" while the local fixtures are in use) |
+| `PUBLIC_PROTOTYPE` | `true` | `noindex, nofollow`, no sitemap; also lets the local placeholder fixtures show (never in production) |
 | `SITE_URL` | derived | origin only, e.g. `https://basblokland.com` |
 | `BASE_PATH` | derived | `/` for production, `/<repo>/` on a project page |
 

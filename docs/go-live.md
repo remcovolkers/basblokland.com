@@ -103,7 +103,7 @@ Two **separate** things can be wrong; check both:
 
 1. **The site does not read Sanity at all yet.** Until the variable in step 4 is set, a rebuild produces the
    same placeholder site, so even a perfect webhook shows nothing new. (How to see which one you are
-   looking at: the live footer says `prototype / placeholder content` = fixtures; just `prototype` = Sanity.)
+   looking at: view the page source and find `<meta name="content-source">`: `fixtures` = placeholders, `sanity` = the CMS. Or look for "placeholder work" on the site.)
 2. **The webhook does not arrive or is rejected.** Open it in Sanity (sanity.io/manage -> project -> API ->
    Webhooks) and read its attempt log for the publish. The status code says what is wrong (typical GitHub API
    behaviour, not verified against this repo):
@@ -135,8 +135,8 @@ and the problem is in the Sanity webhook settings.
 Only after step 1 of "How placeholders disappear" (otherwise the live site is nearly empty):
 
 GitHub -> Settings -> Secrets and variables -> Actions -> **Variables** -> New repository variable:
-`SANITY_PROJECT_ID` = `p9agaeq5`. Then Actions -> **Run workflow**. The footer then says just
-"prototype" (the "placeholder content" wording only appears with fixtures).
+`SANITY_PROJECT_ID` = `p9agaeq5`. Then Actions -> **Run workflow**. The page source then
+says `<meta name="content-source" content="sanity">` and the placeholder works are gone.
 
 ### 5. Check
 `npm run content:status`, then open the live site and compare with the Studio: footer e-mail, `/contact`,
