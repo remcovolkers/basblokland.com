@@ -122,16 +122,17 @@ test('about: blank line = new paragraph, empty CV groups/items dropped', () => {
   const a = mapAbout(
     {
       bio: 'First paragraph\nstill the first.\n\n\nSecond paragraph.\n   \nThird.',
-      cvGroups: [
-        { title: 'exhibitions', items: [{ year: '2025', title: 'a show', detail: 'a place' }, { title: '' }] },
-        { title: '  ', items: [{ title: 'orphan' }] },
-      ],
+      exhibitions: [{ year: '2025', title: 'a show', detail: 'a place' }, { title: '' }],
+      residencies: [{ title: '   ' }],
+      publications: [{ title: 'a book' }, { year: '2024', title: 'an essay' }],
     },
     builder,
   )!;
   assert.deepEqual(a.bio, ['First paragraph still the first.', 'Second paragraph.', 'Third.']);
-  assert.equal(a.cvGroups.length, 1);
+  // fixed order, English titles; the residencies list has no usable line, so it is left out
+  assert.deepEqual(a.cvGroups.map((g) => g.title), ['exhibitions', 'publications']);
   assert.deepEqual(a.cvGroups[0]?.items, [{ year: '2025', title: 'a show', detail: 'a place' }]);
+  assert.deepEqual(a.cvGroups[1]?.items, [{ title: 'a book' }, { year: '2024', title: 'an essay' }]);
   assert.equal(mapAbout(null, builder), undefined);
 });
 test('settings: instagram is normalised to a bare handle', () => {

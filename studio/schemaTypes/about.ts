@@ -1,78 +1,49 @@
 import { defineArrayMember, defineField, defineType } from 'sanity';
 
-/** The "Over" page: biography, portrait and CV groups. There is exactly one of these. */
+/** A CV list: lines of year / title / place, edited in a small panel (one level, no window on a window). */
+const cvList = (name: string, title: string, description: string) =>
+  defineField({
+    name,
+    title,
+    description,
+    type: 'array',
+    group: 'cv',
+    of: [defineArrayMember({ type: 'cvItem' })],
+    options: { modal: { type: 'popover' } },
+  });
+
+/**
+ * The "Over" page: biography, portrait and a CV. There is exactly one of these.
+ * Two tabs: Tekst en portret · Cv. The CV is three fixed lists instead of free-named groups inside
+ * groups: that avoided a dialog on top of a dialog, and these are the groups a CV has anyway.
+ */
 export const about = defineType({
   name: 'about',
   title: 'Over',
   type: 'document',
+  groups: [
+    { name: 'text', title: 'Tekst en portret', default: true },
+    { name: 'cv', title: 'Cv' },
+  ],
   fields: [
     defineField({
       name: 'bio',
       title: 'Biografie',
       description: 'Schrijf zoals je wilt. Laat een lege regel tussen twee alinea’s, dan worden het aparte alinea’s op de website.',
       type: 'text',
+      group: 'text',
       rows: 12,
     }),
     defineField({
       name: 'portrait',
       title: 'Portret',
+      description: 'Kies een foto en schrijf bij "Beschrijving van de foto" kort wat je ziet (verplicht).',
       type: 'photo',
+      group: 'text',
     }),
-    defineField({
-      name: 'cvGroups',
-      title: 'Cv',
-      description: 'Maak groepen, bijvoorbeeld "Tentoonstellingen", "Residenties" of "Publicaties". Je bepaalt zelf de namen.',
-      type: 'array',
-      of: [
-        defineArrayMember({
-          type: 'object',
-          name: 'cvGroup',
-          title: 'Groep',
-          fields: [
-            defineField({
-              name: 'title',
-              title: 'Naam van de groep',
-              type: 'string',
-              validation: (rule) => rule.required().error('Geef de groep een naam.'),
-            }),
-            defineField({
-              name: 'items',
-              title: 'Regels',
-              type: 'array',
-              of: [
-                defineArrayMember({
-                  type: 'object',
-                  name: 'cvItem',
-                  title: 'Regel',
-                  fields: [
-                    defineField({ name: 'year', title: 'Jaar (optioneel)', type: 'string' }),
-                    defineField({
-                      name: 'title',
-                      title: 'Titel',
-                      type: 'string',
-                      validation: (rule) => rule.required().error('Vul een titel in.'),
-                    }),
-                    defineField({
-                      name: 'detail',
-                      title: 'Plaats of toelichting (optioneel)',
-                      type: 'string',
-                    }),
-                  ],
-                  preview: {
-                    select: { year: 'year', title: 'title', detail: 'detail' },
-                    prepare: ({ year, title, detail }) => ({
-                      title: [year, title].filter(Boolean).join('  '),
-                      subtitle: detail,
-                    }),
-                  },
-                }),
-              ],
-            }),
-          ],
-          preview: { select: { title: 'title', items: 'items' }, prepare: ({ title, items }) => ({ title, subtitle: `${items?.length ?? 0} regels` }) },
-        }),
-      ],
-    }),
+    cvList('exhibitions', 'Tentoonstellingen', 'Klik op "Voeg item toe" voor elke tentoonstelling. Mag leeg blijven: een lege lijst staat niet op de website.'),
+    cvList('residencies', 'Residenties', 'Klik op "Voeg item toe" voor elke residentie. Mag leeg blijven.'),
+    cvList('publications', 'Publicaties', 'Klik op "Voeg item toe" voor elke publicatie. Mag leeg blijven.'),
   ],
   preview: { prepare: () => ({ title: 'Over' }) },
 });

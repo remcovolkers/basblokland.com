@@ -44,15 +44,19 @@ export interface RawLabEntry {
   audio?: Maybe<RawAudio>;
 }
 
+export interface RawCvItem {
+  year?: Maybe<string>;
+  title?: Maybe<string>;
+  detail?: Maybe<string>;
+}
+
+/** The Studio has three fixed CV lists (Tentoonstellingen, Residenties, Publicaties). */
 export interface RawAbout {
   bio?: Maybe<string>;
   portrait?: Maybe<RawImage>;
-  cvGroups?: Maybe<
-    Array<{
-      title?: Maybe<string>;
-      items?: Maybe<Array<{ year?: Maybe<string>; title?: Maybe<string>; detail?: Maybe<string> }>>;
-    }>
-  >;
+  exhibitions?: Maybe<RawCvItem[]>;
+  residencies?: Maybe<RawCvItem[]>;
+  publications?: Maybe<RawCvItem[]>;
 }
 
 export interface RawSiteSettings {
@@ -158,14 +162,19 @@ export function mapAbout(raw: Maybe<RawAbout>, builder: UrlBuilder): AboutPage |
     .map((p) => p.replace(/\s*\n\s*/g, ' ').trim())
     .filter(Boolean);
   const portrait = mapImage(raw.portrait, 'about portrait', builder);
-  const cvGroups: CvGroup[] = (raw.cvGroups ?? []).flatMap((g) => {
-    const title = text(g.title);
-    if (!title) return [];
-    const items = (g.items ?? []).flatMap((item) => {
+  // Site copy is English: the groups are shown as "exhibitions", "residencies", "publications".
+  // A list with no usable lines is left out entirely.
+  const lists = [
+    ['exhibitions', raw.exhibitions],
+    ['residencies', raw.residencies],
+    ['publications', raw.publications],
+  ] as const;
+  const cvGroups: CvGroup[] = lists.flatMap(([title, rawItems]) => {
+    const items = (rawItems ?? []).flatMap((item) => {
       const itemTitle = text(item.title);
       return itemTitle ? [{ ...opt('year', text(item.year)), title: itemTitle, ...opt('detail', text(item.detail)) }] : [];
     });
-    return [{ title, items }];
+    return items.length > 0 ? [{ title, items }] : [];
   });
   return { bio, ...(portrait ? { portrait } : {}), cvGroups };
 }

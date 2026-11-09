@@ -19,7 +19,7 @@ are Dutch (`@sanity/locale-nl-nl` plus Dutch labels in the schema).
 | **Kunst** | works with `section = art`, a drag-and-drop list: the order here is the order on the site |
 | **Sieraden** | works with `section = jewelry`, also drag-and-drop, plus *Beschikbaarheid* |
 | **Lab** | lab notes (test, fragment, notitie, geluidsschets, mislukte structuur), newest first |
-| **Over** | one document: biography (plain text, blank line = new paragraph), portrait, CV groups |
+| **Over** | one document, two tabs: *Tekst en portret* (biography: blank line = new paragraph) and *Cv* (three fixed lists: Tentoonstellingen, Residenties, Publicaties) |
 | **Instellingen** | one document: home statement, e-mail, Instagram, status line, colophon |
 
 Every photo needs alt text (a required field), every sound is either an uploaded file or a
@@ -66,6 +66,23 @@ Notes:
 - Invite Bas: https://www.sanity.io/manage -> the project -> Members -> invite his e-mail as **Editor**
   (he never needs more than that).
 - The CLI help (`npx sanity <command> --help`) was my source for these commands, not memory.
+
+## How the forms are laid out (and why)
+
+From a walkthrough of the Studio; Sanity opens every "add item" in a dialog by default
+(`options.modal.type` defaults to `dialog`), which made some actions feel heavy:
+
+- **Werk** has four tabs: *Basis*, *Foto's*, *Tekst*, *Geluid*. A tab with a validation problem is flagged.
+- **Meer foto's** is a grid of thumbnails. The photo description (alt text) is required, with step-by-step
+  help text, because a missing one blocks publishing.
+- **Extra gegevens** and the **CV lists** edit in a small popover, not a full dialog, and have
+  placeholders showing what to type.
+- **Over**: the CV used to be groups inside groups (a dialog on top of a dialog). It is now three fixed
+  lists, one level deep. Free-named groups are gone on purpose.
+- **Instellingen** is split into *Homepage* and *Contact*.
+- New works go to the **top** of the list (newest first, like the design); drag to reorder.
+- Sanity's own Dutch interface text uses "u" ("Los de validatiefouten op voordat u publiceert"); our
+  help texts use "je". Known mismatch, see the open question in the walkthrough notes.
 
 ## Day to day
 

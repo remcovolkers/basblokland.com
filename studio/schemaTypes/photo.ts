@@ -12,16 +12,18 @@ export const photo = defineType({
   fields: [
     defineField({
       name: 'alt',
-      title: 'Beschrijving van de foto',
-      description: 'Beschrijf kort wat je ziet, voor mensen die de foto niet kunnen zien. Bijvoorbeeld: "Zwart metalen beeld op een betonnen sokkel".',
+      title: 'Beschrijving van de foto (verplicht)',
+      description: 'Beschrijf kort wat je ziet, voor mensen die de foto niet kunnen zien.',
       type: 'string',
+      placeholder: 'Bijvoorbeeld: Zwart metalen beeld op een betonnen sokkel',
       validation: (rule) => rule.required().min(5).error('Vul een korte beschrijving van de foto in (minstens 5 tekens).'),
     }),
     defineField({
       name: 'caption',
       title: 'Bijschrift (optioneel)',
-      description: 'Een korte regel onder de foto.',
+      description: 'Een korte regel die onder de foto staat. Mag leeg blijven.',
       type: 'string',
+      placeholder: 'Bijvoorbeeld: Detail van de zijkant',
     }),
   ],
 });

@@ -36,7 +36,9 @@ const LAB = `*[_type == "labEntry"] | order(date desc) {
 const ABOUT = `*[_id == "about"][0] {
   bio,
   portrait ${IMAGE},
-  cvGroups[]{ title, items[]{ year, title, detail } }
+  exhibitions[]{ year, title, detail },
+  residencies[]{ year, title, detail },
+  publications[]{ year, title, detail }
 }`;
 const SETTINGS = `*[_id == "siteSettings"][0] { homeStatement, email, instagram, statusLine, colophon }`;
 
