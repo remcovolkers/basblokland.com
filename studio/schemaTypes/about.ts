@@ -1,4 +1,4 @@
-import { defineArrayMember, defineField, defineType } from 'sanity';
+import { ALL_FIELDS_GROUP, defineArrayMember, defineField, defineType } from 'sanity';
 
 /** A CV list: lines of year / title / place, edited in a small panel (one level, no window on a window). */
 const cvList = (name: string, title: string, description: string) =>
@@ -22,6 +22,7 @@ export const about = defineType({
   title: 'Over',
   type: 'document',
   groups: [
+    { ...ALL_FIELDS_GROUP, hidden: true }, // no automatic "Alle velden" tab, see work.ts
     { name: 'text', title: 'Tekst en portret', default: true },
     { name: 'cv', title: 'Cv' },
   ],

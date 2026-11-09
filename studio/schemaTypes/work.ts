@@ -1,5 +1,5 @@
 import { orderRankField, orderRankOrdering } from '@sanity/orderable-document-list';
-import { defineArrayMember, defineField, defineType } from 'sanity';
+import { ALL_FIELDS_GROUP, defineArrayMember, defineField, defineType } from 'sanity';
 
 export const SECTION_TITLES: Record<string, string> = { art: 'Kunst', jewelry: 'Sieraden' };
 
@@ -16,6 +16,9 @@ export const work = defineType({
   type: 'document',
   orderings: [orderRankOrdering],
   groups: [
+    // Sanity adds an "Alle velden" tab by itself. Hidden: Bas works through the four tabs below and the
+    // document is published as a whole, whichever tab he is on.
+    { ...ALL_FIELDS_GROUP, hidden: true },
     { name: 'basis', title: 'Basis', default: true },
     { name: 'photos', title: "Foto's" },
     { name: 'text', title: 'Tekst' },
