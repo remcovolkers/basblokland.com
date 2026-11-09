@@ -23,6 +23,8 @@ interface Props {
 
 const { title, description = siteDescription, ogImage = '/og.png', noindex = false, tabBar = true } = Astro.props;
 
+// The viewport meta below must never lock zoom (no maximum-scale, no user-scalable=no). This note
+// lives here, not in the markup, so it does not end up in every page's HTML.
 const fullTitle = title ? `${title} — ${wordmark}` : wordmark;
 // Pages that are noindex (e.g. 404) are not real URLs, so they get no canonical / og:url.
 const canonical = noindex ? undefined : new URL(Astro.url.pathname, Astro.site).href;
@@ -33,7 +35,6 @@ const ogImageUrl = absoluteUrl(ogImage, Astro.site);
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <!-- Zoom must stay enabled: no maximum-scale, no user-scalable=no. -->
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light" />
     <meta name="theme-color" content="#e9e8e4" />
