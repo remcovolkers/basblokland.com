@@ -44,7 +44,8 @@ const SKIP = /(^|\/)(package-lock\.json|node_modules|dist|\.git|\.astro)(\/|$)|\
 
 // CLAUDE.md documents the real contact details on purpose: Remco confirmed they may be public.
 // Code, fixtures and docs still must not contain them (they live in Sanity siteSettings).
-const EXEMPT = new Set(['CLAUDE.md']);
+// scripts/test-sanity.ts feeds a FAKE profile URL to the Instagram handle normaliser on purpose.
+const EXEMPT = new Set(['CLAUDE.md', 'scripts/test-sanity.ts']);
 const tracked = new Set(git('ls-files'));
 const candidates = git('ls-files', '-co', '--exclude-standard').filter((f) => !SKIP.test(f) && !EXEMPT.has(f));
 for (const file of candidates) {

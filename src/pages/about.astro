@@ -25,6 +25,7 @@ const about = getAbout();
             <Img
               image={about.portrait}
               class="h-auto max-h-[30dvh] w-auto max-w-full lg:max-h-[60dvh]"
+              sizes="(min-width: 64rem) 25vw, 60vw"
               loading="eager"
             />
             {about.portrait.caption && (

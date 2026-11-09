@@ -3,6 +3,7 @@ import Footer from '../components/Footer.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import SkipLink from '../components/SkipLink.astro';
 import TabBar from '../components/TabBar.astro';
+import { contentSource } from '../lib/sanity/config';
 import { isPrototype, siteDescription, wordmark } from '../lib/site';
 import { absoluteUrl, url } from '../lib/url';
 import interUrl from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
@@ -56,6 +57,7 @@ const ogImageUrl = absoluteUrl(ogImage, Astro.site);
     <meta property="og:image" content={ogImageUrl} />
     <meta name="twitter:card" content="summary_large_image" />
 
+    {contentSource === 'sanity' && <link rel="preconnect" href="https://cdn.sanity.io" />}
     <link rel="preload" href={interUrl} as="font" type="font/woff2" crossorigin />
     <link rel="preload" href={monoUrl} as="font" type="font/woff2" crossorigin />
   </head>

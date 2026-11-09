@@ -8,15 +8,30 @@ export interface Placeholderable {
   isPlaceholder?: boolean;
 }
 
+/** One format of a responsive image: a MIME type and its srcset. */
+export interface ImageSourceSet {
+  /** e.g. "image/webp" */
+  type: string;
+  srcset: string;
+}
+
 export interface ImageRef {
+  /** Default image URL (also the fallback for browsers that ignore `sources`). */
   src: string;
+  /** Natural size AFTER the editor's crop. Used for width/height so the layout never shifts. */
   width: number;
   height: number;
   /** Required. Describes what is visible, for people who cannot see the image. */
   alt: string;
   caption?: string;
-  /** Tiny blurred preview (data URI), filled by the Sanity image pipeline. */
+  /** Tiny blurred preview (data URI), from Sanity's image metadata. */
   lqip?: string;
+  /** srcset of the fallback format (JPEG). Absent for local placeholder images. */
+  srcset?: string;
+  /** Modern formats, best first (WebP; Sanity's CDN has no AVIF). Absent for placeholders. */
+  sources?: ImageSourceSet[];
+  /** The editor's focal point (0..1), used for object-position when an image is cropped by CSS. */
+  focal?: { x: number; y: number };
 }
 
 /** Uploaded file, or an embed URL (Bandcamp / SoundCloud only). */

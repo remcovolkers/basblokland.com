@@ -38,7 +38,7 @@ const placeholder = entry.isPlaceholder ? '' : undefined;
         {entry.note && <p class="max-w-prose text-body-md text-on-surface-variant">{entry.note}</p>}
         {entry.images.map((image) => (
           <figure class="flex flex-col">
-            <Img image={image} class="h-auto w-full" />
+            <Img image={image} class="h-auto w-full" sizes="(min-width: 64rem) 33vw, (min-width: 48rem) 50vw, 100vw" />
             {image.caption && (
               <figcaption class="pt-space-xs font-meta-mono text-meta-mono uppercase text-outline">
                 {image.caption}

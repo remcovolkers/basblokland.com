@@ -17,6 +17,7 @@ const label = String(figure).padStart(2, '0');
   <Img
     image={image}
     class="h-auto w-full"
+    sizes="(min-width: 64rem) 66vw, (min-width: 48rem) 58vw, 100vw"
     loading={eager ? 'eager' : 'lazy'}
     fetchpriority={eager ? 'high' : undefined}
   />

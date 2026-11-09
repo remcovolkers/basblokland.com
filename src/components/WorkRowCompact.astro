@@ -22,7 +22,7 @@ const { work } = Astro.props;
     class="group grid min-h-14 grid-cols-[3.5rem_minmax(0,1fr)_auto] items-center gap-space-md py-space-xs md:grid-cols-[6rem_minmax(0,1fr)_auto] md:py-space-sm"
   >
     <span class="block h-14 w-14 overflow-hidden bg-surface-container md:h-24 md:w-24">
-      <Img image={work.cover} class="h-full w-full object-cover" />
+      <Img image={work.cover} class="h-full w-full object-cover" sizes="(min-width: 48rem) 96px, 56px" />
     </span>
     <span class="flex min-w-0 flex-col">
       <span class="truncate font-headline-md text-body-lg lowercase text-primary group-hover:text-secondary">

@@ -88,6 +88,14 @@ function isEmbedHost(value) {
   }
 }
 
+function isImageCdn(value) {
+  try {
+    return new URL(value).hostname === 'cdn.sanity.io';
+  } catch {
+    return false;
+  }
+}
+
 let urlCount = 0;
 for (const file of htmlFiles) {
   const page = toUrlPath(file);
@@ -109,16 +117,32 @@ for (const file of htmlFiles) {
       found.push([attr('href'), 'link']);
       continue;
     }
+    // A connection hint (no request for content) to the image CDN is allowed; to anything else it is not.
+    if (lower === 'link' && /\b(preconnect|dns-prefetch)\b/i.test(attr('rel') ?? '')) {
+      const href = attr('href');
+      found.push([href, href !== undefined && isImageCdn(href) ? 'link' : 'resource']);
+      continue;
+    }
     for (const n of ['href', 'src', 'poster', 'action', 'data-src']) {
       const v = attr(n);
       if (v === undefined) continue;
       // The only allowed third-party resource: Bandcamp / SoundCloud player iframes. They sit inside
       // a closed <details> and load lazily, so nothing is requested until the visitor opens them.
       const embed = lower === 'iframe' && isEmbedHost(v);
-      found.push([v, isLink || embed ? 'link' : 'resource']);
+      // The other allowed third party: images on Sanity's image CDN (never scripts, styles or fonts).
+      const cdnImage = (lower === 'img' || lower === 'source') && isImageCdn(v);
+      found.push([v, isLink || embed || cdnImage ? 'link' : 'resource']);
     }
     const srcset = attr('srcset');
-    if (srcset) for (const part of srcset.split(',')) found.push([part.trim().split(/\s+/)[0], 'resource']);
+    if (srcset) {
+      // A srcset candidate is "<url> <descriptor>" and the URL ends at whitespace. URLs may contain
+      // commas (Sanity crop parameters: rect=302,3628,...), so do NOT split on commas.
+      for (const m of srcset.matchAll(/(\S+)\s+[\d.]+[wx]/g)) {
+        const candidate = m[1];
+        if (candidate === undefined) continue;
+        found.push([candidate, (lower === 'img' || lower === 'source') && isImageCdn(candidate) ? 'link' : 'resource']);
+      }
+    }
     if (lower === 'a' && /target="_blank"/i.test(whole) && !/rel="[^"]*noopener/i.test(whole)) {
       err(page, `target=_blank link without rel=noopener: ${whole}`);
     }
@@ -129,8 +153,10 @@ for (const file of htmlFiles) {
     checkUrl(page, value, kind, ids);
   }
 
-  // inline style url(...)
-  for (const m of html.matchAll(/url\(\s*["']?([^"')]+)["']?\s*\)/g)) {
+  // inline style url(...). Attribute values are HTML-escaped (&quot;), and data: URIs (the lqip
+  // placeholder) are not requests, so decode first and skip them.
+  for (const m of html.replaceAll('&quot;', '"').replaceAll('&#34;', '"').matchAll(/url\(\s*["']?([^"')]+)["']?\s*\)/g)) {
+    if (m[1].startsWith('data:')) continue;
     urlCount++;
     checkUrl(page, m[1], 'resource', ids);
   }

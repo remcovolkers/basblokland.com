@@ -1,19 +1,35 @@
 /**
  * Content layer. Pages import from here only, never from fixtures or Sanity directly.
- * Today it serves typed local fixtures; the Sanity (GROQ) swap happens in a later step
- * without touching pages.
  *
- * Rules enforced here (the Studio schema will enforce the same ones at edit time):
+ * Source (decided at build time, see sanity/config.ts): Sanity when SANITY_PROJECT_ID is set,
+ * otherwise the typed local fixtures. Content is loaded ONCE with a top-level await, so everything
+ * below stays a plain synchronous API for pages and components.
+ *
+ * Rules enforced here (the Studio schema enforces the same ones at edit time):
  *  - placeholder items (isPlaceholder) are visible on the prototype only, never in production
  *  - slugs are unique kebab-case per section, cover and gallery images have alt text
  *  - jewelry has a status, art does not; embed audio is Bandcamp or SoundCloud only
  */
-import { aboutFixture } from './fixtures/about';
-import { labFixture } from './fixtures/lab';
-import { siteSettingsFixture } from './fixtures/site-settings';
-import { worksFixture } from './fixtures/works';
 import { isPrototype } from './site';
+import { contentSource, sanityConfig } from './sanity/config';
+import { loadFromSanity, type LoadedContent } from './sanity/load';
 import type { AboutPage, AudioRef, LabEntry, Placeholderable, Section, SiteSettings, Work } from './types';
+
+async function load(): Promise<LoadedContent> {
+  // A configured Sanity that fails (network, bad query, bad content) must FAIL the build: silently
+  // falling back to placeholders would publish the wrong site.
+  if (contentSource === 'sanity') return loadFromSanity(sanityConfig);
+  // Fixtures are imported only here, so a Sanity-backed build does not bundle the placeholder images.
+  const [{ worksFixture }, { labFixture }, { aboutFixture }, { siteSettingsFixture }] = await Promise.all([
+    import('./fixtures/works'),
+    import('./fixtures/lab'),
+    import('./fixtures/about'),
+    import('./fixtures/site-settings'),
+  ]);
+  return { works: worksFixture, lab: labFixture, about: aboutFixture, settings: siteSettingsFixture };
+}
+
+const data = await load();
 
 // ---- validation (runs once at build; a bad fixture or CMS shape fails the build) -----------------
 const EMBED_HOSTS = ['bandcamp.com', 'soundcloud.com'];
@@ -58,7 +74,7 @@ function validate(works: readonly Work[], lab: readonly LabEntry[]): void {
     checkAudio(where, e.audio);
   }
 }
-validate(worksFixture, labFixture);
+validate(data.works, data.lab);
 
 // ---- visibility -----------------------------------------------------------------------------
 const visible = <T extends Placeholderable>(items: readonly T[]): T[] =>
@@ -67,12 +83,12 @@ const visible = <T extends Placeholderable>(items: readonly T[]): T[] =>
 // ---- public API -----------------------------------------------------------------------------
 export function getSiteSettings(): SiteSettings {
   // Production never shows placeholder contact details or statements.
-  return isPrototype || !siteSettingsFixture.isPlaceholder ? siteSettingsFixture : {};
+  return isPrototype || !data.settings.isPlaceholder ? data.settings : {};
 }
 
 /** Works of a section, in editor order (the Studio will provide drag-and-drop ordering). */
 export function getWorks(section: Section): Work[] {
-  return visible(worksFixture).filter((w) => w.section === section);
+  return visible(data.works).filter((w) => w.section === section);
 }
 
 export function getWork(section: Section, slug: string): Work | undefined {
@@ -89,11 +105,11 @@ export function getWorkNeighbours(work: Work): { prev?: Work; next?: Work } {
 
 /** Lab entries, newest first. */
 export function getLabEntries(): LabEntry[] {
-  return visible(labFixture).sort((a, b) => b.date.localeCompare(a.date));
+  return visible(data.lab).sort((a, b) => b.date.localeCompare(a.date));
 }
 
 export function getAbout(): AboutPage | undefined {
-  return visible([aboutFixture])[0];
+  return data.about ? visible([data.about])[0] : undefined;
 }
 
 /** Position of a work within its section, as shown in the designs: "01", "02", ... */

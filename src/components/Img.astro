@@ -1,8 +1,12 @@
 ---
 /**
  * The one place images are rendered. Always carries width/height (no layout shift), CMS alt text,
- * lazy loading and the grayscale-by-default treatment. The Sanity step swaps the internals for
- * srcset / avif / webp / lqip without touching any page.
+ * lazy loading and the grayscale-by-default treatment.
+ *
+ * Sanity images arrive with a responsive srcset: they render as <picture> (WebP, then a JPEG
+ * fallback), with the lqip as a blurred background until the real image loads, and the editor's
+ * focal point as object-position when CSS crops the image. Local placeholder images (fixtures)
+ * have no srcset and render as a plain <img>.
  */
 import type { ImageRef } from '../lib/types';
 
@@ -11,18 +15,53 @@ interface Props {
   class?: string;
   loading?: 'lazy' | 'eager';
   fetchpriority?: 'high' | 'low' | 'auto' | undefined;
+  /** How wide the image is displayed, so the browser picks a sensible file. Default: full width. */
+  sizes?: string;
 }
 
-const { image, class: className = '', loading = 'lazy', fetchpriority } = Astro.props;
+const { image, class: className = '', loading = 'lazy', fetchpriority, sizes = '100vw' } = Astro.props;
+
+const style =
+  [
+    image.lqip ? `background-image:url("${image.lqip}");background-size:cover` : '',
+    image.focal ? `object-position:${(image.focal.x * 100).toFixed(1)}% ${(image.focal.y * 100).toFixed(1)}%` : '',
+  ]
+    .filter(Boolean)
+    .join(';') || undefined;
+const responsive = Boolean(image.srcset);
 ---
 
-<img
-  src={image.src}
-  width={image.width}
-  height={image.height}
-  alt={image.alt}
-  loading={loading}
-  decoding="async"
-  fetchpriority={fetchpriority}
-  class:list={['media-gray', className]}
-/>
+{
+  responsive ? (
+    // `contents`: the <picture> wrapper must not create a box, so the classes on the <img> behave
+    // exactly as if it were a direct child.
+    <picture class="contents">
+      {image.sources?.map((source) => <source type={source.type} srcset={source.srcset} sizes={sizes} />)}
+      <img
+        src={image.src}
+        srcset={image.srcset}
+        sizes={sizes}
+        width={image.width}
+        height={image.height}
+        alt={image.alt}
+        loading={loading}
+        decoding="async"
+        fetchpriority={fetchpriority}
+        style={style}
+        class:list={['media-gray', className]}
+      />
+    </picture>
+  ) : (
+    <img
+      src={image.src}
+      width={image.width}
+      height={image.height}
+      alt={image.alt}
+      loading={loading}
+      decoding="async"
+      fetchpriority={fetchpriority}
+      style={style}
+      class:list={['media-gray', className]}
+    />
+  )
+}
