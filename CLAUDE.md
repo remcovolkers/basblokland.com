@@ -30,7 +30,7 @@ Archive/portfolio site for artist Bas den Exter Blokland (sculpture, installatio
 - Accessibility: zoom must stay enabled (no maximum-scale / user-scalable=no), skip link, visible focus, semantic HTML (details/summary instead of inline onclick), prefers-reduced-motion, no horizontal scroll at 200% text size, 44px touch targets, alt text from CMS.
 - Base path: SITE_URL / BASE_PATH come from env (prototype: derived from the git remote; production: base "/"). Every internal link, asset, favicon and OG image goes through url() in src/lib/url.ts, never a literal leading "/". PUBLIC_PROTOTYPE=true adds noindex, drops the sitemap and shows a footer line. `npm run verify:src` and `npm run verify` enforce all of this; the repo is public, so no secrets or real personal data.
 - Self-host fonts (@fontsource). No CDN scripts, no Google Fonts requests.
-- Performance: Lighthouse mobile >= 95. Images via Sanity CDN with srcset, avif/webp, lqip placeholder, lazy loading.
+- Performance: Lighthouse mobile >= 95. Images via Sanity CDN with srcset, webp + jpeg fallback, lqip placeholder, lazy loading. (AVIF is not possible: Sanity's image CDN answers `fm=avif` with HTTP 400, checked against the live CDN. Build-time AVIF would mean hosting our own images: decided against.)
 - Verify after each step: `npm run build` and `astro check`; compare against design/stitch/*.png at 390px and 1440px.
 
 ## Working agreement

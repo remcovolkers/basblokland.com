@@ -38,6 +38,8 @@ public) under Settings → Secrets and variables → Actions → Variables:
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
+| `SANITY_PROJECT_ID` | unset | set: the build reads published content from Sanity; unset: local placeholder fixtures (see [studio.md](studio.md)) |
+| `SANITY_DATASET` | `production` | the dataset to read (must be public, no token is used) |
 | `PUBLIC_PROTOTYPE` | `true` | `noindex, nofollow`, no sitemap, "prototype / placeholder content" footer line |
 | `SITE_URL` | derived | origin only, e.g. `https://basblokland.com` |
 | `BASE_PATH` | derived | `/` for production, `/<repo>/` on a project page |
@@ -50,6 +52,7 @@ Locally the same names work in a `.env` file (copy `.env.example`). `.env` is gi
 npm run dev          # dev server, uses the same base path
 npm run build        # PUBLIC_PROTOTYPE=true to mimic the prototype
 npm run preview      # serves dist/ under the real base path
+npm run test:sanity  # unit tests for the Sanity mapping and image pipeline (no network)
 npm run verify:src   # no hard-coded "/" URLs in src/, no stray personal data
 npm run verify       # links, assets, noindex/sitemap rules in dist/ (use the same PUBLIC_PROTOTYPE as the build)
 ```

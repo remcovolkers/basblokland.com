@@ -67,6 +67,44 @@ Notes:
 - Order: drag the rows. (The site shows works in this order; the numbers `[01.03]` follow it.)
 - Nothing goes live until **Publiceren**. Drafts are yellow ("concept"), published is calm grey.
 
+## How the site reads the content (Step 5)
+
+[src/lib/content.ts](../src/lib/content.ts) is still the only thing pages import. At **build time** it
+picks a source:
+
+| `SANITY_PROJECT_ID` | Source |
+| --- | --- |
+| set | Sanity: four GROQ queries (works, lab, about, settings) for **published** documents only, no token |
+| unset (or `CONTENT_SOURCE=fixtures`) | the typed placeholder fixtures, as before |
+
+- If Sanity is configured and anything fails (network, query, or content that breaks a rule such as a
+  photo without alt text or a work without a cover) the **build fails**. It never silently falls back
+  to placeholders: that would publish the wrong site.
+- Fresh data: the build queries the live API (`useCdn: false`), not the edge cache, so a rebuild right
+  after a publish sees the new version.
+- Content is loaded once per build and per dev-server start: after editing in the Studio, restart
+  `npm run dev` (or rebuild) to see it.
+
+To switch the prototype to Sanity: GitHub -> Settings -> Secrets and variables -> Actions -> **Variables**
+-> add `SANITY_PROJECT_ID` (and `SANITY_DATASET` if it is not `production`), then re-run the workflow.
+Locally: put the same two lines in `.env`.
+
+**Images.** Every Sanity photo becomes a `<picture>`: WebP sources and a JPEG fallback, widths 320-2000
+(never upscaled), `sizes` per place, the real width/height after Bas's crop (no layout shift), the
+`lqip` blur as the placeholder, and Bas's focal point as `object-position` where CSS crops a thumbnail.
+Only `cdn.sanity.io` may serve images; the dist guard allows exactly that host for `<img>`/`<source>`
+(plus a `preconnect` to it) and nothing else third-party.
+
+**AVIF is not possible with Sanity.** I tested the live CDN: `fm=webp` and `fm=jpg` answer 200,
+`fm=avif` answers HTTP 400, and `auto=format` with an AVIF-capable `Accept` header still returns
+WebP. Offering AVIF would mean downloading every image at build time, re-encoding it and hosting it
+ourselves (large builds, and GitHub/Cloudflare file-size limits); decided against. CLAUDE.md says so.
+
+**Tests.** `npm run test:sanity` (15 unit tests, no network) covers crop maths, srcset widths, lqip,
+focal point, alt-text and required-field failures, audio, about/bio splitting and Instagram handle
+clean-up. Beyond that, the whole pipeline was run once against a local mock of the Sanity API with
+**real images from Sanity's public demo project**; see "Not verified yet".
+
 ## The theme preview (no login needed)
 
 `cd studio; npm run theme-preview` serves real Sanity UI components with the theme:
@@ -103,6 +141,16 @@ My recommendation: stay with the hosted Studio.
 - Logging in, creating the project, `deploy`, and everything that needs a live project: the real Studio
   has never run against Sanity from here. Schema, desk structure and the "+ Nieuw ..." intent menu items
   are type-checked and bundle (`sanity build` succeeds), but not exercised.
+- **The site against Bas's real project.** The four GROQ queries have been executed by the real client
+  only against a local mock (which returns hand-written results in the shape the queries ask for), not
+  by Sanity's query engine against documents created by this Studio. A typo in a field name in a query
+  would show up as empty content, not as an error. First thing to do once the project exists: add one
+  work of each kind, set `SANITY_PROJECT_ID`, run `npm run dev` and compare.
+- Images were exercised with real assets from Sanity's public demo project (cropped, with lqip), not
+  with photos uploaded through this Studio (hotspot/crop UI, EXIF rotation of phone photos).
+- `npm audit` in `studio/` reports 19 advisories (3 high: `js-yaml`, `smol-toml`, `undici`), all
+  parser/DoS issues inside Sanity's own tooling, not in the shipped site (root: 0). npm's suggested fix
+  is an *older* `sanity`, so there is nothing to do; revisit when Sanity updates.
 - Whether the hosted Studio's CORS origin is added automatically (see notes above).
 - Position numbers in list rows: Sanity cannot show a row's drag position in a preview, so rows show
   thumbnail, title, kind and year; the `[01.03]` numbers appear on the site only.

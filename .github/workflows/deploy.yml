@@ -33,6 +33,11 @@ jobs:
       # /<repo>/ from GITHUB_REPOSITORY. These are variables, not secrets: they are public.
       SITE_URL: ${{ vars.SITE_URL }}
       BASE_PATH: ${{ vars.BASE_PATH }}
+      # Content source: with a project id the build reads published content from Sanity (public
+      # dataset, no token). Without it the site builds from the local placeholder fixtures.
+      # Variables, not secrets: neither value is secret.
+      SANITY_PROJECT_ID: ${{ vars.SANITY_PROJECT_ID }}
+      SANITY_DATASET: ${{ vars.SANITY_DATASET }}
     steps:
       - name: Checkout your repository using git
         uses: actions/checkout@v7
@@ -43,7 +48,7 @@ jobs:
           node-version: 24
           # The build fails (and nothing deploys) if types, base-path rules, personal-data
           # rules or the prototype flag checks fail.
-          build-cmd: npm run check && npm run verify:src && npm run build && npm run verify
+          build-cmd: npm run check && npm run test:sanity && npm run verify:src && npm run build && npm run verify
 
   deploy:
     needs: build
