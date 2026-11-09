@@ -47,6 +47,12 @@ https://www.sanity.io/manage -> project -> **Members** -> invite his e-mail as *
 [handleiding-bas.md](handleiding-bas.md) (Dutch) and `https://basblokland.sanity.studio`.
 
 ### 3. Make "Publiceren" update the site (the webhook)
+
+> **The token is not what removes the placeholders.** Placeholders go away when the repository
+> *variable* `SANITY_PROJECT_ID` is set (step 4, no token involved). The token below only lets Sanity
+> tell GitHub "something was published, rebuild". Without it the site still shows real content after
+> step 4, but only updates on a push or on the hourly safety net.
+
 Chain: Sanity publish -> webhook -> GitHub `repository_dispatch` (`sanity-publish`) -> the existing
 workflow rebuilds and deploys. The workflow already listens for that event.
 
@@ -75,9 +81,21 @@ expires, publishing silently stops updating the site.
 `repository_dispatch`, and the webhook's **attempts log** in Sanity for HTTP **204**.
 
 Unverified: whether Sanity accepts a constant projection like `{"event_type": "sanity-publish"}` (its docs do not
-say; the attempts log will). If it is rejected: HTTP 422 from GitHub. Fallback without a token: add a
-`schedule:` cron trigger to `.github/workflows/deploy.yml` (rebuild every 30 minutes or hourly); less
-immediate, but nothing can expire. Say if you want that instead.
+say; the attempts log will). If it is rejected: HTTP 422 from GitHub.
+
+**The safety net (already in the workflow).** Whatever happens to the webhook or its token, the workflow
+also rebuilds **every hour** (`schedule`, minute 17, UTC). So the worst case is a delay of up to about an
+hour, never "Bas published and nothing ever happened". Details:
+- It only runs once `SANITY_PROJECT_ID` is set. Before that it is skipped, otherwise it would rebuild the same
+  placeholders every hour.
+- GitHub **disables scheduled workflows in a public repo after 60 days without repository activity**
+  (GitHub's docs do not say whether a scheduled run itself counts). So a `keepalive` job, on those same
+  scheduled runs, adds **one empty commit once the last commit is 45+ days old**, and does nothing
+  otherwise. Pushes by `GITHUB_TOKEN` do not start new runs, so it cannot loop. This needs the job-level
+  `contents: write` permission; if your repo is locked to read-only workflow tokens in Settings -> Actions
+  -> General, the keepalive's push would fail and you would see it in the run.
+- Scheduled runs can be delayed or, under heavy GitHub load, dropped (GitHub's own warning). It is a safety
+  net, not a guarantee.
 
 ### 4. Switch the site to the real content
 Only after step 1 of "How placeholders disappear" (otherwise the live site is nearly empty):

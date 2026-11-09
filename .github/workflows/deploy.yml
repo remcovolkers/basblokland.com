@@ -5,11 +5,15 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-  # Later: the Sanity publish webhook calls the GitHub API with
-  #   {"event_type": "sanity-publish"}
-  # to rebuild the site (see docs/publishing.md once the Sanity step is done).
+  # Primary: the Sanity publish webhook calls the GitHub API with {"event_type": "sanity-publish"}
+  # (setup: docs/go-live.md).
   repository_dispatch:
     types: [sanity-publish]
+  # Safety net: rebuild every hour, for the day the webhook is missing, its token has expired or a
+  # delivery failed. It only does anything once SANITY_PROJECT_ID is set (see the build job's `if`).
+  # Runs on the default branch, in UTC; minute 17 avoids the busy top of the hour.
+  schedule:
+    - cron: '17 * * * *'
 
 permissions:
   contents: read
@@ -23,6 +27,10 @@ concurrency:
 
 jobs:
   build:
+    # A scheduled run only makes sense with Sanity content; without it it would rebuild the same
+    # placeholder fixtures every hour. Pushes, manual runs and the webhook always build. When this
+    # job is skipped, `deploy` (which needs it) is skipped too.
+    if: ${{ github.event_name != 'schedule' || vars.SANITY_PROJECT_ID != '' }}
     runs-on: ubuntu-latest
     env:
       # The GitHub Pages site is the prototype: noindex, no sitemap, "prototype" footer line.
@@ -60,3 +68,27 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+
+  # GitHub disables scheduled workflows in a PUBLIC repository after 60 days without repository
+  # activity, which would silently end the hourly safety net above. Once the repo has been quiet for
+  # 45+ days, this adds one empty commit (the only thing it ever commits). A push made with
+  # GITHUB_TOKEN does not start another workflow run, so this cannot loop.
+  keepalive:
+    if: ${{ github.event_name == 'schedule' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: Empty commit if the repository has been quiet for 45+ days
+        run: |
+          last=$(git log -1 --format=%ct)
+          now=$(date +%s)
+          age_days=$(( (now - last) / 86400 ))
+          echo "Last commit is ${age_days} day(s) old."
+          if [ "$age_days" -ge 45 ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit --allow-empty -m "chore: keep scheduled workflows alive (no repository activity for ${age_days} days)"
+            git push
+          fi
