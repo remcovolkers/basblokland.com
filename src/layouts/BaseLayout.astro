@@ -42,6 +42,7 @@ const ogImageUrl = absoluteUrl(ogImage, Astro.site);
     {(isPrototype || noindex) && <meta name="robots" content="noindex, nofollow" />}
 
     <link rel="icon" href={url('/favicon.svg')} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={url('/apple-touch-icon.png')} sizes="180x180" />
 
     <meta property="og:site_name" content={wordmark} />
     <meta property="og:type" content="website" />

@@ -1,4 +1,5 @@
 ---
+import LogoMark from './LogoMark.astro';
 import { isActive, navItems, wordmark } from '../lib/site';
 import { url } from '../lib/url';
 
@@ -11,9 +12,10 @@ const onHome = pathname === url('/');
     <a
       href={url('/')}
       aria-current={onHome ? 'page' : undefined}
-      class="flex min-h-11 items-center font-headline-md text-body-lg font-bold lowercase tracking-tight text-primary hover:text-secondary"
+      class="flex min-h-11 items-center gap-space-sm font-headline-md text-body-lg font-bold lowercase tracking-tight text-primary hover:text-secondary"
     >
-      {wordmark}
+      <LogoMark variant="small" class="h-9 w-auto shrink-0" />
+      <span>{wordmark}</span>
     </a>
 
     <!-- Desktop / tablet navigation. On mobile the same links live in the bottom tab bar. -->

@@ -1,4 +1,5 @@
 ---
+import LogoMark from '../components/LogoMark.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { navItems } from '../lib/site';
 import { url } from '../lib/url';
@@ -10,6 +11,7 @@ import { url } from '../lib/url';
 -->
 <BaseLayout title="not found" noindex>
   <section class="px-page pb-space-xl pt-space-md">
+    <LogoMark class="mb-space-md h-48 w-auto text-primary" />
     <p class="font-meta-mono text-meta-mono uppercase text-outline">[ 404 ]</p>
     <h1 class="mt-space-sm font-headline-xl-mobile text-headline-xl-mobile lowercase text-primary md:text-headline-xl">
       page not found

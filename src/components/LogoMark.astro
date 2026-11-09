@@ -1,0 +1,29 @@
+---
+/**
+ * Bas's logo mark as inline SVG (fill: currentColor, transparent background), so it follows
+ * the text colour on any background. The only illustrative element on the site.
+ *
+ *  - "full":  traced from the 300px original. Use at 64px height and up.
+ *  - "small": deliberately simplified silhouette (no hem, no spikes). Use below ~48px,
+ *             e.g. the header. Detail of the full mark turns to noise at small sizes.
+ *
+ * Always decorative: the text wordmark sits next to it and carries the accessible name.
+ * The wordmark is never replaced by the mark.
+ */
+import full from '../assets/logo/logo-mark.svg?raw';
+import small from '../assets/logo/logo-mark-small.svg?raw';
+
+interface Props {
+  variant?: 'full' | 'small';
+  /** Size/colour classes, e.g. "h-9 w-auto". */
+  class?: string;
+}
+
+const { variant = 'full', class: className = '' } = Astro.props;
+const svg = (variant === 'full' ? full : small).replace(
+  '<svg ',
+  `<svg aria-hidden="true" focusable="false" class="${className}" `,
+);
+---
+
+<Fragment set:html={svg} />

@@ -12,7 +12,8 @@
     "preview": "astro preview",
     "check": "astro check",
     "verify": "node scripts/check-dist.mjs",
-    "verify:src": "node scripts/check-src.mjs"
+    "verify:src": "node scripts/check-src.mjs",
+    "brand": "node scripts/build-brand-assets.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
