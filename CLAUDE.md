@@ -18,7 +18,7 @@ Archive/portfolio site for artist Bas den Exter Blokland (sculpture, installatio
 - Wordmark "bas den exter blokland" always lowercase. Titles: Inter, lowercase. Metadata, nav, counters, captions: JetBrains Mono, uppercase, wide tracking.
 - No gradients, shadows, rounded corners, filled buttons, icons or icon fonts. Use "* * *" dividers, hairlines and bracketed mono links like [ VIEW ALL ART -> ].
 - One accent (secondary, #b02f09) only for hover, active and status.
-- Images grayscale by default, colour on hover/focus for pointer devices. Index cards may crop to a fixed ratio; detail pages show images uncropped at natural ratio.
+- Images grayscale by default, colour on hover/focus for pointer devices. Touch devices have no hover: there the centred carousel slide, the index item crossing the middle of the screen and all images on a work's own page are in colour. Index cards may crop to a fixed ratio; detail pages show images uncropped at natural ratio.
 - Keep Stitch token names (text-meta-mono, px-gutter, bg-surface-container...) so its markup ports 1:1.
 
 ## Content rules

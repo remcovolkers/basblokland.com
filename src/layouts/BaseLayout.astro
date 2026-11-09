@@ -80,5 +80,38 @@ const ogImageUrl = absoluteUrl(ogImage, Astro.site);
       <Footer />
       {tabBar && <TabBar />}
     </div>
+    <script>
+      // Touch devices have no hover, so grayscale images would never get their colour. Give the
+      // item crossing a thin band in the middle of the screen the colour instead (data-lit; the CSS
+      // is in global.css). The carousel and work pages are handled in CSS alone. Pointer devices
+      // keep hover and this does nothing for them.
+      const touch = window.matchMedia('(hover: none)');
+      let observer: IntersectionObserver | undefined;
+
+      function start(): void {
+        if (observer || !('IntersectionObserver' in window)) return;
+        const seen = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) entry.target.toggleAttribute('data-lit', entry.isIntersecting);
+          },
+          { rootMargin: '-48% 0px -48% 0px' }, // a thin band: the middle 4% of the viewport height
+        );
+        for (const media of document.querySelectorAll('.media-gray')) {
+          if (media.closest('[data-carousel], [data-detail]')) continue;
+          seen.observe(media.closest('a, figure') ?? media);
+        }
+        observer = seen;
+      }
+
+      function stop(): void {
+        observer?.disconnect();
+        observer = undefined;
+        for (const lit of document.querySelectorAll('[data-lit]')) lit.removeAttribute('data-lit');
+      }
+
+      const sync = () => (touch.matches ? start() : stop());
+      touch.addEventListener('change', sync);
+      sync();
+    </script>
   </body>
 </html>

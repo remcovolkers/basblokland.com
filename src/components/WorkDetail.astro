@@ -31,7 +31,7 @@ const canEnquire = work.section === 'art' || work.status === 'available' || work
 ---
 
 <!-- Prev/next lives in the pinned sub-header (see WorkNav); this is the scrolling body. -->
-<article class="pb-space-md" data-placeholder={work.isPlaceholder ? '' : undefined}>
+<article class="pb-space-md" data-detail data-placeholder={work.isPlaceholder ? '' : undefined}>
   <div class="grid grid-cols-1 gap-space-md px-page pt-space-sm md:grid-cols-12 md:gap-gutter-desktop">
     <!-- lg: stays beside the scrolling photos. top = pinned header (4rem) + sub-header (2.75rem) + air -->
     <header class="flex flex-col gap-space-sm md:col-span-5 md:self-start lg:sticky lg:top-[8rem] lg:col-span-4">

@@ -161,6 +161,9 @@
     color-scheme: light;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+    /* No rubber-band at the ends of the page: on iOS it drags the pinned header and dock along
+       with the bounce, and on Android it triggers pull-to-refresh. The page should feel fixed. */
+    overscroll-behavior: none;
   }
   body {
     /* `anywhere` (not `break-word`) also lowers min-content width, so long wide-tracked mono
@@ -180,7 +183,7 @@
 
 @layer components {
   /* Images are grayscale by default. Colour returns on hover (pointer devices only) and on
-     keyboard focus of the surrounding link. Touch devices stay grayscale. */
+     keyboard focus of the surrounding link. Touch devices get their own rule further down. */
   .media-gray {
     filter: grayscale(1);
     transition: filter 150ms ease;
@@ -193,6 +196,18 @@
   }
   a:focus-visible .media-gray {
     filter: none;
+  }
+  /* Touch screens have no hover, so "colour on hover" becomes "colour where you are looking":
+       - the centred slide of the gallery carousel,
+       - the item crossing the middle of the screen (the script in BaseLayout sets data-lit),
+       - every image on a work's own page (you opened it, so it is the one in focus).
+     Everything else stays grayscale, so an index still reads as one quiet contact sheet. */
+  @media (hover: none) {
+    [data-carousel] [aria-current='true'] .media-gray,
+    [data-lit] .media-gray,
+    [data-detail] .media-gray {
+      filter: none;
+    }
   }
 }
 
@@ -225,6 +240,11 @@
    the visible cue that the strip scrolls sideways. */
 .is-enhanced [data-carousel-track] {
   scrollbar-width: none;
+}
+/* A sideways swipe that reaches the end of the strip stays in the strip: no bounce, and no
+   browser "back" gesture triggered by accident. */
+[data-carousel-track] {
+  overscroll-behavior-x: contain;
 }
 .is-enhanced [data-carousel-track]::-webkit-scrollbar {
   display: none;
