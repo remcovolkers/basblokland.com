@@ -136,11 +136,26 @@
 /* Page side padding: gutter on mobile, wider margins on tablet/desktop. */
 @utility px-page {
   padding-inline: var(--spacing-gutter);
+  scroll-padding-inline: var(--spacing-gutter); /* keeps snap targets aligned with the content edge */
   @media (min-width: 48rem) {
     padding-inline: var(--spacing-margin-tablet);
+    scroll-padding-inline: var(--spacing-margin-tablet);
   }
   @media (min-width: 64rem) {
     padding-inline: var(--spacing-margin-desktop);
+    scroll-padding-inline: var(--spacing-margin-desktop);
+  }
+}
+
+/* Clips a full-width scroller to the page content edges (the gutters), so slides that have scrolled
+   away do not poke into the margin. 6px of slack keeps focus rings from being cut off. */
+@utility clip-page {
+  clip-path: inset(-6px calc(var(--spacing-gutter) - 6px));
+  @media (min-width: 48rem) {
+    clip-path: inset(-6px calc(var(--spacing-margin-tablet) - 6px));
+  }
+  @media (min-width: 64rem) {
+    clip-path: inset(-6px calc(var(--spacing-margin-desktop) - 6px));
   }
 }
 

@@ -25,6 +25,9 @@ const { works, defaultView = 'list' } = Astro.props;
 const views: View[] = ['list', 'grid', 'gallery'];
 const href = (w: Work) => url(`${w.section}/${w.slug}`);
 const isJewelry = works.some((w) => w.section === 'jewelry');
+// Bracketed mono button. aria-disabled (not `disabled`) keeps keyboard focus at the ends.
+const carouselButton =
+  'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center text-primary hover:text-secondary aria-disabled:cursor-default aria-disabled:text-outline aria-disabled:hover:text-outline';
 ---
 
 <div class="view-root" data-view-root>
@@ -115,34 +118,63 @@ const isJewelry = works.some((w) => w.section === 'jewelry');
     }
   </ul>
 
-  <!-- GALLERY (proposal) -->
+  <!-- GALLERY: a carousel (proposal; Stitch has no gallery design). Without JavaScript it is a
+       natively scrollable snap strip. The script below adds prev/next, a live counter and arrow
+       keys. No autoplay, ever. -->
   <div
     data-view-panel="gallery"
-    role="region"
-    aria-label="Gallery, scroll sideways"
-    tabindex="0"
-    class="flex snap-x snap-mandatory gap-space-md overflow-x-auto pb-space-xl pt-space-sm"
+    data-carousel
+    role="group"
+    aria-roledescription="carousel"
+    aria-label="Gallery"
+    class="pb-space-xl pt-space-sm"
   >
-    {
-      works.map((work, i) => (
-        <figure
-          class="flex w-full shrink-0 snap-center flex-col px-page md:w-4/5 lg:w-3/5"
-          data-placeholder={work.isPlaceholder ? '' : undefined}
-        >
-          <a href={href(work)} class="group flex flex-col">
-            <span class="flex items-center justify-center bg-surface-container">
-              <Img image={work.cover} class="h-auto max-h-[75dvh] w-auto max-w-full object-contain" />
-            </span>
-            <figcaption class="mt-space-sm flex items-baseline justify-between gap-space-md">
-              <span class="font-headline-md text-body-lg lowercase text-primary group-hover:text-secondary">{work.title}</span>
-              <span class="shrink-0 font-meta-mono text-meta-mono uppercase text-outline">
-                {String(i + 1).padStart(2, '0')} / {String(works.length).padStart(2, '0')}
+    <!-- Hidden until the script runs (and only when there is something to scroll): without the
+         script these buttons would do nothing. -->
+    <div
+      data-carousel-controls
+      class="hidden flex-wrap items-center justify-between gap-x-space-md px-page font-meta-mono text-meta-mono uppercase"
+    >
+      <button type="button" data-carousel-prev class={carouselButton}>[&nbsp;← prev&nbsp;]</button>
+      <p data-carousel-status aria-live="polite" class="text-on-surface-variant">
+        01 / {String(works.length).padStart(2, '0')}
+      </p>
+      <button type="button" data-carousel-next class={carouselButton}>[&nbsp;next →&nbsp;]</button>
+    </div>
+    <div
+      data-carousel-track
+      tabindex="0"
+      aria-label="Slides. Scroll sideways or use the arrow keys."
+      class="clip-page relative flex snap-x snap-mandatory gap-space-md overflow-x-auto px-page pt-space-xs"
+    >
+      {
+        works.map((work, i) => (
+          <figure
+            role="group"
+            aria-roledescription="slide"
+            aria-label={`${i + 1} of ${works.length}`}
+            data-carousel-slide
+            class="flex w-[88%] shrink-0 snap-start flex-col md:w-3/5 lg:w-1/2"
+            data-placeholder={work.isPlaceholder ? '' : undefined}
+          >
+            <a href={href(work)} class="group flex flex-col">
+              <!-- Fixed stage height so slides of different ratios do not make the page jump. -->
+              <span class="flex h-[60dvh] min-h-64 items-center justify-center bg-surface-container">
+                <Img image={work.cover} class="h-auto max-h-full w-auto max-w-full object-contain" />
               </span>
-            </figcaption>
-          </a>
-        </figure>
-      ))
-    }
+              <figcaption class="mt-space-sm flex items-baseline justify-between gap-space-md">
+                <span class="font-headline-md text-body-lg lowercase text-primary group-hover:text-secondary">
+                  {work.title}
+                </span>
+                {work.year && (
+                  <span class="shrink-0 font-meta-mono text-meta-mono uppercase text-outline">{work.year}</span>
+                )}
+              </figcaption>
+            </a>
+          </figure>
+        ))
+      }
+    </div>
   </div>
 </div>
 
@@ -160,5 +192,90 @@ const isJewelry = works.some((w) => w.section === 'jewelry');
         if (radio.checked) history.replaceState(null, '', `#${radio.value}`);
       });
     }
+  }
+</script>
+
+<script>
+  // Carousel enhancement for the gallery view: prev/next buttons, a live "03 / 07" counter and
+  // arrow keys. Without this script the gallery is still a natively scrollable snap strip.
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  for (const carousel of document.querySelectorAll<HTMLElement>('[data-carousel]')) {
+    const track = carousel.querySelector<HTMLElement>('[data-carousel-track]');
+    const controls = carousel.querySelector<HTMLElement>('[data-carousel-controls]');
+    const prev = carousel.querySelector<HTMLElement>('[data-carousel-prev]');
+    const next = carousel.querySelector<HTMLElement>('[data-carousel-next]');
+    const status = carousel.querySelector<HTMLElement>('[data-carousel-status]');
+    const slides = Array.from(carousel.querySelectorAll<HTMLElement>('[data-carousel-slide]'));
+    if (!track || !controls || !prev || !next || !status || slides.length === 0) continue;
+
+    const last = slides.length - 1;
+    const pad = (n: number) => String(n).padStart(2, '0');
+    let shown = -1;
+
+    /** Slide whose left edge is nearest the start of the track; the last one at the very end. */
+    function currentIndex(): number {
+      if (!track) return 0;
+      if (track.scrollLeft + track.clientWidth >= track.scrollWidth - 2) return last;
+      const inset = parseFloat(getComputedStyle(track).paddingLeft) || 0;
+      let best = 0;
+      let bestDistance = Infinity;
+      slides.forEach((slide, i) => {
+        const distance = Math.abs(slide.offsetLeft - inset - track.scrollLeft);
+        if (distance < bestDistance) {
+          best = i;
+          bestDistance = distance;
+        }
+      });
+      return best;
+    }
+
+    function update(): void {
+      if (!track || !controls || !prev || !next || !status) return;
+      // Only offer controls when there is actually something to scroll to.
+      const scrollable = track.scrollWidth > track.clientWidth + 2;
+      controls.classList.toggle('hidden', !scrollable);
+      controls.classList.toggle('flex', scrollable);
+      if (!scrollable) return;
+      const index = currentIndex();
+      prev.setAttribute('aria-disabled', String(index === 0));
+      next.setAttribute('aria-disabled', String(index === last));
+      if (index !== shown) {
+        shown = index;
+        status.textContent = `${pad(index + 1)} / ${pad(slides.length)}`;
+      }
+    }
+
+    function go(index: number): void {
+      const target = slides.at(Math.min(last, Math.max(0, index)));
+      target?.scrollIntoView({
+        behavior: reduceMotion.matches ? 'auto' : 'smooth',
+        inline: 'start',
+        block: 'nearest',
+      });
+    }
+
+    prev.addEventListener('click', () => go(currentIndex() - 1));
+    next.addEventListener('click', () => go(currentIndex() + 1));
+    track.addEventListener('keydown', (event) => {
+      const keys: Record<string, () => void> = {
+        ArrowLeft: () => go(currentIndex() - 1),
+        ArrowRight: () => go(currentIndex() + 1),
+        Home: () => go(0),
+        End: () => go(last),
+      };
+      // Only react to keys pressed on the track itself, not inside the slides' links.
+      if (event.target === track && keys[event.key]) {
+        event.preventDefault();
+        keys[event.key]?.();
+      }
+    });
+
+    // Scroll events already arrive at most once per frame and update() is a handful of
+    // comparisons, so no extra throttling is needed.
+    track.addEventListener('scroll', update, { passive: true });
+    // Runs when the panel becomes visible (it starts as display:none) and on any resize.
+    new ResizeObserver(update).observe(track);
+    update();
   }
 </script>
