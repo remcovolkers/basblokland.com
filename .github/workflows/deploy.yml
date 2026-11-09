@@ -1,0 +1,57 @@
+name: Deploy prototype to GitHub Pages
+
+# PROTOTYPE hosting only. Production runs on Cloudflare Pages (see docs/domain-move.md).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  # Later: the Sanity publish webhook calls the GitHub API with
+  #   {"event_type": "sanity-publish"}
+  # to rebuild the site (see docs/publishing.md once the Sanity step is done).
+  repository_dispatch:
+    types: [sanity-publish]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; let a running deploy finish rather than cancel it half-way.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # The GitHub Pages site is the prototype: noindex, no sitemap, "prototype" footer line.
+      # Override with a repository *variable* PUBLIC_PROTOTYPE=false (Settings -> Secrets and
+      # variables -> Actions -> Variables) only when this site becomes the real one.
+      PUBLIC_PROTOTYPE: ${{ vars.PUBLIC_PROTOTYPE || 'true' }}
+      # Optional overrides. Left unset, astro.config.ts derives https://<owner>.github.io and
+      # /<repo>/ from GITHUB_REPOSITORY. These are variables, not secrets: they are public.
+      SITE_URL: ${{ vars.SITE_URL }}
+      BASE_PATH: ${{ vars.BASE_PATH }}
+    steps:
+      - name: Checkout your repository using git
+        uses: actions/checkout@v7
+
+      - name: Install, check, build and upload your site
+        uses: withastro/action@v6
+        with:
+          node-version: 24
+          # The build fails (and nothing deploys) if types, base-path rules, personal-data
+          # rules or the prototype flag checks fail.
+          build-cmd: npm run check && npm run verify:src && npm run build && npm run verify
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
