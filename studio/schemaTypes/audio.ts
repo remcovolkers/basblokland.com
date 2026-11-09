@@ -19,8 +19,8 @@ export const audio = defineType({
         ],
         layout: 'radio',
       },
-      initialValue: 'file',
-      validation: (rule) => rule.required().error('Kies een van de twee mogelijkheden.'),
+      // No initialValue and not required: sound is optional. A preset choice would create the sound
+      // block on every new work and then demand a file. The site shows no audio while `source` is empty.
     }),
     defineField({
       name: 'file',
@@ -29,11 +29,12 @@ export const audio = defineType({
       type: 'file',
       options: { accept: 'audio/*' },
       hidden: ({ parent }) => parent?.source !== 'file',
+      // A warning, not an error: an empty file never blocks publishing (the site simply shows no audio).
       validation: (rule) =>
         rule.custom((value, context) => {
           const parent = context.parent as { source?: string } | undefined;
-          return parent?.source === 'file' && !value ? 'Upload een geluidsbestand.' : true;
-        }),
+          return parent?.source === 'file' && !value ? 'Er is nog geen bestand geüpload. Zonder bestand komt er geen geluid op de website.' : true;
+        }).warning(),
     }),
     defineField({
       name: 'embedUrl',
