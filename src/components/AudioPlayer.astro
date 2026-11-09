@@ -1,8 +1,12 @@
 ---
 /**
- * Uploaded file  -> native <audio controls> (keyboard and screen-reader accessible, no script).
+ * Uploaded file  -> a flat, site-styled player: "[ play ]", a mono time readout and a hairline
+ *                   scrubber. It is a real <audio> element driven by a small script, and the scrubber
+ *                   is a native range input, so the keyboard (arrows) and screen readers work. Without
+ *                   JavaScript the browser's own <audio controls> stays visible instead.
  * Embed (Bandcamp / SoundCloud) -> NOT loaded with the page. The player sits inside <details>,
- * so no third party is contacted until the visitor opens it, plus a plain link as fallback.
+ *                   so no third party is contacted until the visitor opens it, plus a plain link as
+ *                   fallback. The embedded player is the other site's own and cannot be restyled.
  */
 import type { AudioRef } from '../lib/types';
 
@@ -11,16 +15,55 @@ interface Props {
 }
 const { audio } = Astro.props;
 const title = audio.title ?? 'audio';
+const buttonClass =
+  'inline-flex min-h-11 items-center font-meta-mono text-meta-mono uppercase text-primary hover:text-secondary';
 ---
 
 <figure class="flex flex-col gap-space-sm bg-surface-container p-space-md">
   <figcaption class="font-meta-mono text-meta-mono uppercase text-outline">[ audio ] {title}</figcaption>
   {
     audio.source === 'file' ? (
-      <audio controls preload="none" src={audio.url} class="w-full" />
+      <div data-audio class="flex flex-col">
+        <!-- preload="metadata": just enough to know the length. The script removes `controls`. -->
+        <audio controls preload="metadata" src={audio.url} class="w-full" data-audio-el />
+        <!-- Hidden until the script has taken over the <audio> element. -->
+        <div data-audio-ui class="hidden flex-col">
+          <div class="flex items-center justify-between gap-space-md font-meta-mono text-meta-mono uppercase">
+            <button type="button" data-audio-toggle class={buttonClass}>
+              <span aria-hidden="true">[&nbsp;</span>
+              <span data-audio-label>play</span>
+              <span aria-hidden="true">&nbsp;]</span>
+            </button>
+            <!-- Decorative: the slider below carries the position for assistive technology. -->
+            <span data-audio-time aria-hidden="true" class="text-outline">00:00 / --:--</span>
+          </div>
+          <!-- Scrubber: hairline track and a bar for the played part sit behind a transparent range
+               input, which supplies the behaviour (touch, mouse, keyboard) and the thin thumb. -->
+          <div class="relative h-11">
+            <span aria-hidden="true" class="pointer-events-none absolute inset-x-0 top-1/2 h-px bg-outline" />
+            <span
+              aria-hidden="true"
+              data-audio-fill
+              class="pointer-events-none absolute left-0 top-1/2 h-0.5 -translate-y-1/2 bg-primary"
+              style="width:0%"
+            />
+            <input
+              type="range"
+              class="audio-seek relative"
+              data-audio-seek
+              min="0"
+              max="1000"
+              step="10"
+              value="0"
+              disabled
+              aria-label={`Position in ${title}`}
+            />
+          </div>
+        </div>
+      </div>
     ) : (
       <details class="group">
-        <summary class="inline-flex min-h-11 cursor-pointer list-none items-center font-meta-mono text-meta-mono uppercase text-primary hover:text-secondary [&::-webkit-details-marker]:hidden">
+        <summary class={`cursor-pointer list-none [&::-webkit-details-marker]:hidden ${buttonClass}`}>
           [&nbsp;load player&nbsp;]
         </summary>
         <iframe
@@ -30,15 +73,115 @@ const title = audio.title ?? 'audio';
           class="mt-space-sm h-32 w-full border-0"
           allow="autoplay"
         />
-        <a
-          class="mt-space-xs inline-flex min-h-11 items-center font-meta-mono text-meta-mono uppercase text-primary hover:text-secondary"
-          href={audio.url}
-          rel="noopener"
-          target="_blank"
-        >
+        <a class={`mt-space-xs ${buttonClass}`} href={audio.url} rel="noopener" target="_blank">
           [&nbsp;open in new tab&nbsp;→&nbsp;]
         </a>
       </details>
     )
   }
 </figure>
+
+<script>
+  // Takes over every uploaded-file player on the page. Without this script the browser's own
+  // <audio controls> remains, so nothing depends on it.
+  const players = Array.from(document.querySelectorAll<HTMLElement>('[data-audio]'));
+  const mediaOf = new Map<HTMLElement, HTMLAudioElement>();
+
+  const two = (n: number) => String(n).padStart(2, '0');
+  /** 83.4 -> "01:23"; unknown -> "--:--". */
+  function clock(seconds: number): string {
+    if (!Number.isFinite(seconds)) return '--:--';
+    const whole = Math.max(0, Math.floor(seconds));
+    return `${two(Math.floor(whole / 60))}:${two(whole % 60)}`;
+  }
+  /** 83.4 -> "1 minute 23 seconds", for screen readers. */
+  function spoken(seconds: number): string {
+    const whole = Math.max(0, Math.floor(seconds));
+    const m = Math.floor(whole / 60);
+    const s = whole % 60;
+    return `${m ? `${m} minute${m === 1 ? '' : 's'} ` : ''}${s} second${s === 1 ? '' : 's'}`;
+  }
+
+  for (const root of players) {
+    const media = root.querySelector<HTMLAudioElement>('[data-audio-el]');
+    const ui = root.querySelector<HTMLElement>('[data-audio-ui]');
+    const toggle = root.querySelector<HTMLButtonElement>('[data-audio-toggle]');
+    const label = root.querySelector<HTMLElement>('[data-audio-label]');
+    const time = root.querySelector<HTMLElement>('[data-audio-time]');
+    const fill = root.querySelector<HTMLElement>('[data-audio-fill]');
+    const seek = root.querySelector<HTMLInputElement>('[data-audio-seek]');
+    if (!media || !ui || !toggle || !label || !time || !fill || !seek) continue;
+
+    mediaOf.set(root, media);
+    media.removeAttribute('controls');
+    media.classList.add('hidden');
+    ui.classList.remove('hidden');
+    ui.classList.add('flex');
+
+    let scrubbing = false;
+
+    function render(): void {
+      if (!media || !time || !fill || !seek) return;
+      const duration = media.duration;
+      const known = Number.isFinite(duration) && duration > 0;
+      const fraction = known ? Math.min(1, media.currentTime / duration) : 0;
+      seek.disabled = !known;
+      if (!scrubbing) seek.value = String(Math.round(fraction * 1000));
+      fill.style.width = `${(fraction * 100).toFixed(2)}%`;
+      time.textContent = `${clock(media.currentTime)} / ${clock(duration)}`;
+      seek.setAttribute(
+        'aria-valuetext',
+        known ? `${spoken(media.currentTime)} of ${spoken(duration)}` : 'not loaded yet',
+      );
+    }
+
+    function setPlaying(playing: boolean): void {
+      if (!label) return;
+      label.textContent = playing ? 'pause' : 'play';
+      root.toggleAttribute('data-playing', playing);
+    }
+
+    for (const type of ['loadedmetadata', 'durationchange', 'timeupdate', 'seeked', 'emptied']) {
+      media.addEventListener(type, render);
+    }
+    media.addEventListener('play', () => {
+      setPlaying(true);
+      // One sound at a time.
+      for (const [otherRoot, other] of mediaOf) if (otherRoot !== root) other.pause();
+    });
+    media.addEventListener('pause', () => setPlaying(false));
+    media.addEventListener('ended', () => {
+      setPlaying(false);
+      render();
+    });
+    media.addEventListener('error', () => {
+      setPlaying(false);
+      toggle.disabled = true;
+      seek.disabled = true;
+      time.textContent = 'unavailable';
+    });
+
+    toggle.addEventListener('click', () => {
+      if (media.paused) {
+        // play() is refused on some browsers until the file is usable: that is not worth a crash.
+        void media.play().catch(() => setPlaying(false));
+      } else {
+        media.pause();
+      }
+    });
+
+    // Scrubbing: follow the thumb live; timeupdate must not fight it meanwhile.
+    seek.addEventListener('input', () => {
+      scrubbing = true;
+      const duration = media.duration;
+      if (Number.isFinite(duration) && duration > 0) media.currentTime = (Number(seek.value) / 1000) * duration;
+      render();
+    });
+    seek.addEventListener('change', () => {
+      scrubbing = false;
+      render();
+    });
+
+    render();
+  }
+</script>

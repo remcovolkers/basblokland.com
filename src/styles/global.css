@@ -268,6 +268,64 @@
   color: var(--color-primary);
 }
 
+/* Audio player (see AudioPlayer.astro). The scrubber is a native range input so touch, mouse and keyboard
+   work, but it is made invisible except for a thin square bar: the hairline and the played part are drawn
+   by elements behind it. Unlayered, like the rules above, so utilities cannot override it. */
+.audio-seek {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 2.75rem; /* 44px touch target */
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.audio-seek:disabled {
+  cursor: default;
+}
+.audio-seek::-webkit-slider-runnable-track {
+  height: 2.75rem;
+  background: transparent;
+  border: 0;
+}
+.audio-seek::-moz-range-track {
+  height: 2.75rem;
+  background: transparent;
+  border: 0;
+}
+.audio-seek::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 4px;
+  height: 1.25rem;
+  margin-top: calc((2.75rem - 1.25rem) / 2);
+  background: var(--color-primary);
+  border: 0;
+  border-radius: 0;
+}
+.audio-seek::-moz-range-thumb {
+  width: 4px;
+  height: 1.25rem;
+  background: var(--color-primary);
+  border: 0;
+  border-radius: 0;
+}
+.audio-seek:disabled::-webkit-slider-thumb {
+  background: var(--color-outline);
+}
+.audio-seek:disabled::-moz-range-thumb {
+  background: var(--color-outline);
+}
+/* Playing = a status, so it gets the accent colour. */
+[data-audio][data-playing] [data-audio-toggle] {
+  color: var(--color-secondary);
+}
+[data-audio][data-playing] [data-audio-fill] {
+  background: var(--color-secondary);
+}
+
 /* List / Grid / Gallery toggle. Pure CSS: a radio group inside .view-root decides which panel is
    visible, so it works without JavaScript. (JS only remembers the choice in the URL hash.)
    Browsers without :has() simply show all three panels.
