@@ -65,7 +65,10 @@ The config detects this and stops with an explanation. Use PowerShell
 ## Public repo rules
 
 - No `.env`, secrets or real personal data. `npm run verify:src` rejects any e-mail address that is
-  not on the allowlist, and any hard-coded Instagram profile. It runs in CI.
+  not on the allowlist, any hard-coded Instagram profile, and anything shaped like a GitHub or Sanity
+  token (`github_pat_...`, `ghp_...`, `sk...`). It runs in CI. The GitHub token for the publish webhook
+  lives only in the Sanity webhook's header, never in the repo or on your machine
+  (see [go-live.md](go-live.md)).
 - The only e-mail in the repo is a placeholder in `src/lib/fixtures/site-settings.ts`. The real
   address is entered in Sanity (`siteSettings`) once Bas approves it.
 - Placeholder content lives only in typed fixtures with `isPlaceholder: true`.

@@ -40,6 +40,10 @@ const EMAIL_ALLOW = [/^remco\.volkers1@gmail\.com$/i, /@example\.(?:invalid|com|
 // any hard-coded Instagram profile URL (handles come from Sanity siteSettings, never code).
 const email = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+/g;
 const instagramProfile = /instagram\.com\/(?!\$\{)[A-Za-z0-9_.]+/gi;
+// Secrets must never be committed (the repo is public). Shapes of the tokens this project uses:
+// GitHub fine-grained (github_pat_...) and classic (ghp_, gho_, ghu_, ghs_, ghr_) tokens, and Sanity
+// API tokens ("sk" + a long random string). The patterns are generic: no real token is stored here.
+const secretPatterns = [/\bgithub_pat_[A-Za-z0-9_]{20,}/g, /\bgh[pousr]_[A-Za-z0-9]{30,}/g, /\bsk[A-Za-z0-9]{40,}\b/g];
 const SKIP = /(^|\/)(package-lock\.json|node_modules|dist|\.git|\.astro)(\/|$)|\.(png|jpe?g|webp|avif|woff2?|ico|svgz)$/i;
 
 // CLAUDE.md documents the real contact details on purpose: Remco confirmed they may be public.
@@ -61,6 +65,12 @@ for (const file of candidates) {
   const report = tracked.has(file) ? errors : warnings;
   for (const found of text.match(email) ?? []) {
     if (!EMAIL_ALLOW.some((ok) => ok.test(found))) report.push(`${file}: unexpected email address "${found}". Do not publish it.`);
+  }
+  for (const pattern of secretPatterns) {
+    for (const found of text.match(pattern) ?? []) {
+      // Show only the start: never print a real secret into a log.
+      report.push(`${file}: looks like a secret token ("${found.slice(0, 8)}…"). Remove it and revoke/rotate the token.`);
+    }
   }
   for (const found of text.match(instagramProfile) ?? []) {
     report.push(`${file}: hard-coded Instagram profile "${found}". Handles belong in Sanity siteSettings.`);
