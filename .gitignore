@@ -23,3 +23,4 @@ Thumbs.db
 studio/node_modules/
 studio/dist/
 studio/.sanity/
+studio/theme-preview/dist/
