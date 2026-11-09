@@ -129,9 +129,11 @@ for (const file of htmlFiles) {
       // The only allowed third-party resource: Bandcamp / SoundCloud player iframes. They sit inside
       // a closed <details> and load lazily, so nothing is requested until the visitor opens them.
       const embed = lower === 'iframe' && isEmbedHost(v);
-      // The other allowed third party: images on Sanity's image CDN (never scripts, styles or fonts).
-      const cdnImage = (lower === 'img' || lower === 'source') && isImageCdn(v);
-      found.push([v, isLink || embed || cdnImage ? 'link' : 'resource']);
+      // The other allowed third party: media on Sanity's CDN, i.e. images and uploaded audio (the
+      // player uses preload="none", so audio is only fetched when someone presses play).
+      // Never scripts, styles or fonts.
+      const cdnMedia = ['img', 'source', 'audio'].includes(lower) && isImageCdn(v);
+      found.push([v, isLink || embed || cdnMedia ? 'link' : 'resource']);
     }
     const srcset = attr('srcset');
     if (srcset) {
@@ -168,7 +170,8 @@ for (const file of htmlFiles) {
 
   // prototype flag behaviour
   const hasNoindex = /<meta name="robots" content="[^"]*noindex/i.test(html);
-  const hasProtoLine = /prototype \/ placeholder content/i.test(html);
+  // The footer line: "prototype" (Sanity content) or "prototype / placeholder content" (fixtures).
+  const hasProtoLine = /<span>\s*prototype(?: \/ placeholder content)?\s*<\/span>/i.test(html);
   if (prototypeExpected) {
     if (!hasNoindex) err(page, 'prototype build is missing <meta name="robots" content="noindex, nofollow">');
     if (!hasProtoLine) err(page, 'prototype build is missing the "prototype / placeholder content" footer line');
