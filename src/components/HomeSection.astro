@@ -1,0 +1,28 @@
+---
+// One home-page section: numbered title, a short stack of compact rows (slot), and a "view all" link.
+import BracketLink from './BracketLink.astro';
+
+interface Props {
+  no: string;
+  title: string;
+  /** Where "view all" goes (already passed through url()). */
+  href: string;
+  /** Link text, e.g. "view all art". */
+  linkLabel: string;
+  count: number;
+}
+const { no, title, href, linkLabel, count } = Astro.props;
+---
+
+<section class="flex min-w-0 flex-col border-t border-outline-variant pt-space-xs">
+  <div class="flex flex-wrap items-baseline justify-between gap-x-space-md">
+    <h2 class="font-headline-md text-body-lg font-semibold lowercase text-primary">
+      {no} / {title}
+      <span class="ml-space-sm font-meta-mono text-meta-mono font-normal uppercase text-outline">({count})</span>
+    </h2>
+    <BracketLink href={href}>{linkLabel}</BracketLink>
+  </div>
+  <div class="flex flex-col">
+    <slot />
+  </div>
+</section>

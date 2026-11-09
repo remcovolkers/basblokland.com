@@ -7,8 +7,8 @@ const pathname = Astro.url.pathname;
 const onHome = pathname === url('/');
 ---
 
-<header class="sticky top-0 z-40 border-b border-outline-variant bg-surface-container-high pt-safe">
-  <div class="mx-auto flex min-h-16 max-w-[90rem] items-center justify-between gap-space-md px-page">
+<header class="border-b border-outline-variant bg-surface-container-high pt-safe">
+  <div class="mx-auto flex min-h-14 max-w-[90rem] items-center justify-between gap-space-md px-page md:min-h-16">
     <a
       href={url('/')}
       aria-current={onHome ? 'page' : undefined}

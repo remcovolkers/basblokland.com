@@ -1,37 +1,27 @@
 ---
+import BracketLink from '../components/BracketLink.astro';
 import LogoMark from '../components/LogoMark.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { navItems } from '../lib/site';
 import { url } from '../lib/url';
 ---
 
 <!--
   Served for any unknown URL. GitHub Pages serves this file for 404s inside the project
   site, and Cloudflare Pages does the same. Every URL here is base-aware via url().
+  The main navigation (header / tab bar) is on this page too, so only a way home is added.
 -->
 <BaseLayout title="not found" noindex>
-  <section class="px-page pb-space-xl pt-space-md">
-    <LogoMark class="mb-space-md h-auto w-36 max-w-full text-primary" />
-    <p class="font-meta-mono text-meta-mono uppercase text-outline">[ 404 ]</p>
-    <h1 class="mt-space-sm font-headline-xl-mobile text-headline-xl-mobile lowercase text-primary md:text-headline-xl">
-      page not found
-    </h1>
-    <p class="mt-space-md max-w-xl text-body-md text-on-surface-variant">
-      This page does not exist, or it has moved.
-    </p>
-    <ul class="mt-space-lg flex flex-col font-meta-mono text-meta-mono uppercase text-primary">
-      <li>
-        <a class="inline-flex min-h-11 items-center hover:text-secondary" href={url('/')}>[ back to index → ]</a>
-      </li>
-      {
-        navItems.map((item) => (
-          <li>
-            <a class="inline-flex min-h-11 items-center hover:text-secondary" href={url(item.href)}>
-              [ {item.label} ]
-            </a>
-          </li>
-        ))
-      }
-    </ul>
+  <section class="flex flex-col gap-space-md px-page py-space-md sm:flex-row sm:items-center">
+    <LogoMark class="h-auto w-20 shrink-0 text-primary md:w-28" />
+    <div class="flex min-w-0 flex-col gap-space-xs">
+      <p class="font-meta-mono text-meta-mono uppercase text-outline">[ 404 ]</p>
+      <h1 class="font-headline-lg-mobile text-headline-lg-mobile lowercase text-primary md:text-headline-lg">
+        page not found
+      </h1>
+      <p class="max-w-xl text-body-md text-on-surface-variant">This page does not exist, or it has moved.</p>
+      <div>
+        <BracketLink href={url('/')}>back to index</BracketLink>
+      </div>
+    </div>
   </section>
 </BaseLayout>

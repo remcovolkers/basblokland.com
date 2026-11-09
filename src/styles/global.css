@@ -212,6 +212,15 @@
   outline-offset: 3px;
 }
 
+/* Pinned header / dock. On short viewports (small landscape phones, or heavy browser zoom, which
+   shrinks the CSS viewport) pinned bars would eat most of the screen, so they scroll away instead.
+   Unlayered so it beats the `sticky` utility. */
+@media (max-height: 32rem) {
+  [data-chrome] {
+    position: static;
+  }
+}
+
 /* The scrollbar is hidden only once the script has enhanced the carousel: without JavaScript it is
    the visible cue that the strip scrolls sideways. */
 .is-enhanced [data-carousel-track] {

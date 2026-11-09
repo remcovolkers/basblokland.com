@@ -1,0 +1,41 @@
+---
+/**
+ * Prev / next / index bar for a work. Rendered into the pinned sub-header slot of BaseLayout, so it
+ * stays in view however far the page's photos scroll.
+ */
+import { getWorkNeighbours, workIndex } from '../lib/content';
+import { sections } from '../lib/site';
+import { url } from '../lib/url';
+import type { Work } from '../lib/types';
+import BracketLink from './BracketLink.astro';
+
+interface Props {
+  work: Work;
+}
+const { work } = Astro.props;
+const { prev, next } = getWorkNeighbours(work);
+const to = (w: Work) => url(`${w.section}/${w.slug}`);
+const disabled = 'inline-flex min-h-11 items-center text-outline';
+---
+
+<nav aria-label="Browse works" class="border-b border-outline-variant bg-surface-container-high px-page">
+  <div class="mx-auto flex max-w-[90rem] flex-wrap items-center justify-between gap-x-space-md font-meta-mono text-meta-mono uppercase">
+    <div class="flex items-center gap-space-sm">
+      {
+        prev ? (
+          <BracketLink href={to(prev)} arrow={false} tight>← prev {workIndex(prev)}</BracketLink>
+        ) : (
+          <span class={disabled}>[← prev]</span>
+        )
+      }
+      {
+        next ? (
+          <BracketLink href={to(next)} arrow={false} tight>next {workIndex(next)} →</BracketLink>
+        ) : (
+          <span class={disabled}>[next →]</span>
+        )
+      }
+    </div>
+    <BracketLink href={url(sections[work.section].href)} arrow={false} tight>index</BracketLink>
+  </div>
+</nav>

@@ -10,12 +10,12 @@ const entries = getLabEntries();
 ---
 
 <BaseLayout title="lab">
-  <div class="px-page pb-space-md pt-space-md">
+  <div class="border-b border-outline-variant px-page py-space-xs">
     <SectionHeader as="h1" no={sections.lab.no} title={sections.lab.label} count={entries.length} />
   </div>
   {
     entries.length > 0 ? (
-      <div class="flex flex-col gap-space-sm px-page pb-space-xl md:grid md:grid-cols-2 md:items-start md:gap-gutter">
+      <div class="flex flex-col gap-space-xs px-page py-space-sm md:grid md:grid-cols-2 md:items-start md:gap-gutter lg:grid-cols-3">
         {entries.map((entry) => <LabEntryItem entry={entry} />)}
       </div>
     ) : (

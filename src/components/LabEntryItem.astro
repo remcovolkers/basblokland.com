@@ -19,17 +19,19 @@ const placeholder = entry.isPlaceholder ? '' : undefined;
 {
   expandable ? (
     <details class="group bg-surface-container hover:bg-surface-container-highest" data-placeholder={placeholder}>
-      <summary class="flex min-h-11 cursor-pointer list-none flex-col gap-space-xs p-space-sm [&::-webkit-details-marker]:hidden">
+      <summary class="flex min-h-11 cursor-pointer list-none flex-col px-space-sm py-space-xs [&::-webkit-details-marker]:hidden">
         <span class="flex justify-between gap-space-md font-meta-mono text-meta-mono uppercase">
           <span class="text-primary">[{labTypeLabel[entry.type]}]</span>
           <time class="text-outline" datetime={entry.date}>
             {formatDate(entry.date)}
           </time>
         </span>
-        <span class="font-headline-md text-body-lg lowercase text-primary">{entry.title}</span>
-        <span class="flex justify-end font-meta-mono text-meta-mono uppercase text-primary group-hover:text-secondary">
-          <span class="group-open:hidden">[&nbsp;expand&nbsp;]</span>
-          <span class="hidden group-open:inline">[&nbsp;collapse&nbsp;]</span>
+        <span class="flex items-baseline justify-between gap-space-md">
+          <span class="min-w-0 truncate font-headline-md text-body-lg lowercase text-primary">{entry.title}</span>
+          <span class="shrink-0 font-meta-mono text-meta-mono uppercase text-primary group-hover:text-secondary">
+            <span class="group-open:hidden">[&nbsp;expand&nbsp;]</span>
+            <span class="hidden group-open:inline">[&nbsp;collapse&nbsp;]</span>
+          </span>
         </span>
       </summary>
       <div class="flex flex-col gap-space-md p-space-sm pt-space-xs">
@@ -48,14 +50,14 @@ const placeholder = entry.isPlaceholder ? '' : undefined;
       </div>
     </details>
   ) : (
-    <div class="flex flex-col gap-space-xs bg-surface-container p-space-sm" data-placeholder={placeholder}>
+    <div class="flex min-h-11 flex-col bg-surface-container px-space-sm py-space-xs" data-placeholder={placeholder}>
       <span class="flex justify-between gap-space-md font-meta-mono text-meta-mono uppercase">
         <span class="text-primary">[{labTypeLabel[entry.type]}]</span>
         <time class="text-outline" datetime={entry.date}>
           {formatDate(entry.date)}
         </time>
       </span>
-      <span class="font-headline-md text-body-lg lowercase text-primary">{entry.title}</span>
+      <span class="truncate font-headline-md text-body-lg lowercase text-primary">{entry.title}</span>
     </div>
   )
 }

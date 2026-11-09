@@ -4,12 +4,10 @@
  * natural ratio. Mobile: stacked. Desktop (md+): sticky info column beside the images
  * (a PROPOSAL; Stitch only has the mobile layout).
  */
-import { getWorkNeighbours, workIndex } from '../lib/content';
+import { workIndex } from '../lib/content';
 import { sections } from '../lib/site';
-import { url } from '../lib/url';
 import type { DetailRow, Work } from '../lib/types';
 import AudioPlayer from './AudioPlayer.astro';
-import BracketLink from './BracketLink.astro';
 import EnquireLink from './EnquireLink.astro';
 import MediaPlate from './MediaPlate.astro';
 import SpecList from './SpecList.astro';
@@ -20,8 +18,6 @@ interface Props {
 }
 const { work } = Astro.props;
 const section = sections[work.section];
-const { prev, next } = getWorkNeighbours(work);
-const to = (w: Work) => url(`${w.section}/${w.slug}`);
 
 const rows: DetailRow[] = [
   ...(work.medium ? [{ label: work.section === 'jewelry' ? 'material' : 'medium', value: work.medium }] : []),
@@ -34,20 +30,11 @@ const plates = [work.cover, ...work.gallery];
 const canEnquire = work.section === 'art' || work.status === 'available' || work.status === 'made-to-order';
 ---
 
-<article class="pb-space-xl" data-placeholder={work.isPlaceholder ? '' : undefined}>
-  <nav
-    aria-label="Browse works"
-    class="flex flex-wrap items-center justify-between gap-x-space-md border-b border-outline-variant px-page font-meta-mono text-meta-mono uppercase"
-  >
-    <div class="flex items-center gap-space-md">
-      {prev ? <BracketLink href={to(prev)} arrow={false}>← prev {workIndex(prev)}</BracketLink> : <span class="inline-flex min-h-11 items-center text-outline">[&nbsp;← prev&nbsp;]</span>}
-      {next ? <BracketLink href={to(next)} arrow={false}>next {workIndex(next)} →</BracketLink> : <span class="inline-flex min-h-11 items-center text-outline">[&nbsp;next →&nbsp;]</span>}
-    </div>
-    <BracketLink href={url(section.href)} arrow={false}>index</BracketLink>
-  </nav>
-
-  <div class="grid grid-cols-1 gap-space-lg px-page pt-space-md md:grid-cols-12 md:gap-gutter-desktop">
-    <header class="flex flex-col gap-space-md md:col-span-5 md:self-start lg:sticky lg:top-24 lg:col-span-4">
+<!-- Prev/next lives in the pinned sub-header (see WorkNav); this is the scrolling body. -->
+<article class="pb-space-md" data-placeholder={work.isPlaceholder ? '' : undefined}>
+  <div class="grid grid-cols-1 gap-space-md px-page pt-space-sm md:grid-cols-12 md:gap-gutter-desktop">
+    <!-- lg: stays beside the scrolling photos. top = pinned header (4rem) + sub-header (2.75rem) + air -->
+    <header class="flex flex-col gap-space-sm md:col-span-5 md:self-start lg:sticky lg:top-[8rem] lg:col-span-4">
       <p class="flex items-baseline justify-between gap-space-md font-meta-mono text-meta-mono uppercase text-outline">
         <span>{section.no} / {section.label}</span>
         <span>[{section.no}.{workIndex(work)}]</span>
@@ -62,7 +49,7 @@ const canEnquire = work.section === 'art' || work.status === 'available' || work
       {canEnquire && <EnquireLink about={work.title} />}
     </header>
 
-    <div class="flex flex-col gap-space-lg md:col-span-7 lg:col-span-8">
+    <div class="flex flex-col gap-space-md md:col-span-7 lg:col-span-8">
       {plates.map((image, i) => <MediaPlate image={image} figure={i + 1} eager={i === 0} />)}
     </div>
   </div>

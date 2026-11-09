@@ -1,4 +1,8 @@
 ---
+/**
+ * Compact footer bar. It lives in the pinned bottom dock (see BaseLayout), so these lines stay in
+ * view while the page scrolls. One line on desktop; wraps to a few short lines on a phone.
+ */
 import { getSiteSettings } from '../lib/content';
 import { isPrototype, wordmark } from '../lib/site';
 
@@ -8,23 +12,29 @@ const year = new Date().getFullYear();
 const linkClass = 'inline-flex min-h-11 items-center hover:text-secondary';
 ---
 
-<footer class="px-page pb-space-lg pt-space-xl">
-  <div class="flex flex-col gap-space-xs font-meta-mono text-meta-mono uppercase text-on-surface-variant">
-    {
-      email && (
-        <a class={linkClass} href={`mailto:${email}`} data-placeholder={settings.isPlaceholder ? '' : undefined}>
-          {email}
-        </a>
-      )
-    }
-    {
-      instagram && (
-        <a class={linkClass} href={`https://instagram.com/${instagram}`} rel="noopener" target="_blank">
-          @{instagram}
-        </a>
-      )
-    }
-    <span class="mt-space-xs text-outline">© {year} {wordmark}</span>
-    {isPrototype && <span class="text-outline">prototype / placeholder content</span>}
+<footer class="border-t border-outline-variant bg-surface-container-high px-page">
+  <div
+    class="mx-auto flex max-w-[90rem] flex-wrap items-center justify-between gap-x-space-lg font-meta-mono text-meta-mono uppercase text-on-surface-variant"
+  >
+    <div class="flex flex-wrap items-center gap-x-space-lg">
+      {
+        email && (
+          <a class={linkClass} href={`mailto:${email}`} data-placeholder={settings.isPlaceholder ? '' : undefined}>
+            {email}
+          </a>
+        )
+      }
+      {
+        instagram && (
+          <a class={linkClass} href={`https://instagram.com/${instagram}`} rel="noopener" target="_blank">
+            @{instagram}
+          </a>
+        )
+      }
+    </div>
+    <p class="flex flex-wrap items-center gap-x-space-lg pb-space-xs text-outline md:pb-0">
+      <span>© {year} {wordmark}</span>
+      {isPrototype && <span>prototype / placeholder content</span>}
+    </p>
   </div>
 </footer>

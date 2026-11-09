@@ -4,9 +4,11 @@ interface Props {
   href: string;
   /** Show the trailing arrow (default). Disable for in-page or external-looking links. */
   arrow?: boolean;
+  /** No spaces inside the brackets: "[← PREV 06]" as in the Stitch design. Saves width in tight bars. */
+  tight?: boolean;
   class?: string;
 }
-const { href, arrow = true, class: className = '' } = Astro.props;
+const { href, arrow = true, tight = false, class: className = '' } = Astro.props;
 ---
 
 <a
@@ -16,5 +18,17 @@ const { href, arrow = true, class: className = '' } = Astro.props;
     className,
   ]}
 >
-  [&nbsp;<slot />{arrow && <>&nbsp;→</>}&nbsp;]
+  {
+    tight ? (
+      <>
+        [<slot />
+        {arrow && <>&nbsp;→</>}]
+      </>
+    ) : (
+      <>
+        [&nbsp;<slot />
+        {arrow && <>&nbsp;→</>}&nbsp;]
+      </>
+    )
+  }
 </a>

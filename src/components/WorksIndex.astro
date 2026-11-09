@@ -1,189 +1,216 @@
 ---
 /**
- * Index of works with a List / Grid / Gallery toggle.
+ * Index of works with a List / Grid / Gallery toggle. Title and toggle share one compact bar so
+ * the page needs as little vertical scrolling as possible.
  *
  * Progressive enhancement: the toggle is a radio group and the CSS (:has) shows the matching
  * panel, so it works with JavaScript off. The small script below only keeps the choice in the URL
  * hash, so "back" from a detail page returns to the same view.
  *
- * List and Grid are from the Stitch design. The Gallery view is not designed in Stitch: this is a
- * PROPOSAL (one large image at a time, uncropped, horizontal scroll-snap). The thumbnail column in
- * the list at md+ is also a proposal (desktop adaptation).
+ * List and Grid are from the Stitch design (Grid made denser). The Gallery view is not designed in
+ * Stitch: it is a PROPOSAL, a centred carousel whose stage fills the free viewport height. The
+ * thumbnail column in the list at md+ is also a proposal (desktop adaptation).
  */
 import { workIndex } from '../lib/content';
 import { jewelryStatusLabel } from '../lib/labels';
 import { url } from '../lib/url';
 import type { Work } from '../lib/types';
+import EmptyState from './EmptyState.astro';
 import Img from './Img.astro';
 
 type View = 'list' | 'grid' | 'gallery';
 interface Props {
   works: Work[];
+  /** Section number and title for the heading, e.g. "01" / "art". */
+  no: string;
+  title: string;
   defaultView?: View;
+  /** Optional one-line note under the bar (jewelry: how to buy). */
+  intro?: string;
 }
-const { works, defaultView = 'list' } = Astro.props;
+const { works, no, title, defaultView = 'list', intro } = Astro.props;
 const views: View[] = ['list', 'grid', 'gallery'];
 const href = (w: Work) => url(`${w.section}/${w.slug}`);
 const isJewelry = works.some((w) => w.section === 'jewelry');
+const entries = `${works.length} ${works.length === 1 ? 'entry' : 'entries'}`;
 // Bracketed mono button. aria-disabled (not `disabled`) keeps keyboard focus at the ends.
 const carouselButton =
   'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center text-primary hover:text-secondary aria-disabled:cursor-default aria-disabled:text-outline aria-disabled:hover:text-outline';
 ---
 
-<div class="view-root" data-view-root>
-  <fieldset class="flex min-w-0 flex-wrap items-center justify-between gap-x-space-md border-y border-outline-variant px-page py-space-xs">
-    <legend class="sr-only">View</legend>
-    <span class="font-meta-mono text-meta-mono uppercase text-on-surface-variant">
-      {works.length} {works.length === 1 ? 'entry' : 'entries'}
-    </span>
-    <div class="flex flex-wrap items-center justify-end gap-space-sm font-meta-mono text-meta-mono uppercase">
-      {
-        views.map((view) => (
-          <label class="view-option inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center px-space-xs text-on-surface-variant hover:text-primary">
-            <input class="sr-only" type="radio" name="view" value={view} checked={view === defaultView} />
-            <span>[{view}]</span>
-          </label>
-        ))
-      }
+<div class="view-root flex flex-1 flex-col" data-view-root>
+  <div class="flex flex-wrap items-center justify-between gap-x-space-md border-b border-outline-variant px-page">
+    <div class="flex items-baseline gap-space-md py-space-xs">
+      <h1 class="font-headline-lg-mobile text-headline-lg-mobile lowercase text-primary md:text-headline-lg">
+        {no} / {title}
+      </h1>
+      <span class="hidden font-meta-mono text-meta-mono uppercase text-on-surface-variant md:inline">{entries}</span>
     </div>
-  </fieldset>
-
-  <!-- LIST -->
-  <ul data-view-panel="list" class="flex flex-col px-page pb-space-xl pt-space-sm">
-    <li aria-hidden="true" class="grid grid-cols-12 gap-x-space-sm px-space-xs py-space-xs font-meta-mono text-meta-mono uppercase text-outline">
-      <span class="col-span-2">ref</span>
-      <span class="col-span-7 md:col-span-6">title / medium</span>
-      <span class="col-span-3 text-right md:col-span-4">
-        year<span class="hidden md:inline"> / {isJewelry ? 'status' : 'size'}</span>
-      </span>
-    </li>
     {
-      works.map((work) => (
-        <li data-placeholder={work.isPlaceholder ? '' : undefined}>
-          <a
-            href={href(work)}
-            class="group grid grid-cols-12 items-center gap-x-space-sm px-space-xs py-space-sm hover:bg-primary hover:text-on-primary focus-visible:bg-primary focus-visible:text-on-primary"
-          >
-            <span class="col-span-2 font-meta-mono text-meta-mono group-hover:text-secondary-fixed-dim">
-              {workIndex(work)}
-            </span>
-            <span class="col-span-7 flex flex-col md:col-span-6">
-              <span class="font-headline-md text-body-lg lowercase">{work.title}</span>
-              {work.medium && (
-                <span class="truncate font-meta-mono text-meta-mono uppercase text-outline group-hover:text-outline-variant">
-                  {work.medium}
-                </span>
-              )}
-            </span>
-            <span class="col-span-3 flex flex-col items-end gap-space-xs text-right font-meta-mono text-meta-mono uppercase md:col-span-4 md:flex-row md:items-center md:justify-end md:gap-space-md">
-              <span class="hidden h-12 w-12 shrink-0 overflow-hidden bg-surface-container md:block">
-                <Img image={work.cover} class="h-full w-full object-cover" />
-              </span>
-              <span class="flex flex-col items-end">
-                <span>{work.year}</span>
-                {work.status ? (
-                  <span class="text-secondary group-hover:text-secondary-fixed-dim">[{jewelryStatusLabel[work.status]}]</span>
-                ) : (
-                  work.dimensions && (
-                    <span class="hidden text-outline group-hover:text-outline-variant md:inline">{work.dimensions}</span>
-                  )
-                )}
-              </span>
-            </span>
-          </a>
-        </li>
-      ))
+      works.length > 0 && (
+        <fieldset class="flex min-w-0 flex-wrap items-center justify-end gap-space-sm font-meta-mono text-meta-mono uppercase">
+          <legend class="sr-only">View</legend>
+          {views.map((view) => (
+            <label class="view-option inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center px-space-xs text-on-surface-variant hover:text-primary">
+              <input class="sr-only" type="radio" name="view" value={view} checked={view === defaultView} />
+              <span>[{view}]</span>
+            </label>
+          ))}
+        </fieldset>
+      )
     }
-  </ul>
-
-  <!-- GRID -->
-  <ul data-view-panel="grid" class="grid grid-cols-2 gap-space-sm px-page pb-space-xl pt-space-sm md:grid-cols-3 md:gap-gutter lg:grid-cols-4">
-    {
-      works.map((work) => (
-        <li data-placeholder={work.isPlaceholder ? '' : undefined}>
-          <a href={href(work)} class="group flex flex-col">
-            <span class="block aspect-square overflow-hidden bg-surface-container">
-              <Img image={work.cover} class="h-full w-full object-cover" />
-            </span>
-            <span class="mt-space-xs flex flex-col gap-space-xs">
-              <span class="font-meta-mono text-meta-mono uppercase text-outline">
-                {workIndex(work)}
-                {work.year ? ` / ${work.year}` : ''}
-              </span>
-              <span class="font-headline-md text-body-sm lowercase text-primary group-hover:text-secondary">{work.title}</span>
-            </span>
-          </a>
-        </li>
-      ))
-    }
-  </ul>
-
-  <!-- GALLERY: a centred carousel (proposal; Stitch has no gallery design). The focused slide sits
-       in the middle at full size, its neighbours are smaller. Without JavaScript it is a natively
-       scrollable snap strip (scrollbar visible). The script below adds prev/next, a live counter,
-       arrow keys, focus handling and the scaling. No autoplay, ever.
-       `@container` lets slide widths and the centring padding use container units (cqw). -->
-  <div
-    data-view-panel="gallery"
-    data-carousel
-    role="group"
-    aria-roledescription="carousel"
-    aria-label="Gallery"
-    class="@container pb-space-xl pt-space-sm"
-  >
-    <!-- Hidden until the script runs (and only when there is something to scroll): without the
-         script these buttons would do nothing. -->
-    <div
-      data-carousel-controls
-      class="hidden flex-wrap items-center justify-between gap-x-space-md px-page font-meta-mono text-meta-mono uppercase"
-    >
-      <button type="button" data-carousel-prev class={carouselButton}>[&nbsp;← prev&nbsp;]</button>
-      <div class="flex flex-col items-center">
-        <p data-carousel-status aria-live="polite" class="text-on-surface-variant">
-          01 / {String(works.length).padStart(2, '0')}
-        </p>
-        <!-- Keyboard cue for pointer devices (touch has no arrow keys). Turns dark while the
-             carousel has focus, i.e. while the arrow keys are live. Decorative: the track's own
-             aria-label already tells assistive tech. -->
-        <p aria-hidden="true" class="carousel-hint hidden pointer-fine:block">use ← → keys</p>
-      </div>
-      <button type="button" data-carousel-next class={carouselButton}>[&nbsp;next →&nbsp;]</button>
-    </div>
-    <div
-      data-carousel-track
-      tabindex="0"
-      aria-label="Slides. Use the left and right arrow keys, or scroll sideways."
-      class="relative flex snap-x snap-mandatory gap-space-md overflow-x-auto px-[calc((100cqw_-_var(--slide))_/_2)] pt-space-md [--slide:min(68cqw,30rem)] md:[--slide:min(46cqw,36rem)]"
-    >
-      {
-        works.map((work, i) => (
-          <figure
-            role="group"
-            aria-roledescription="slide"
-            aria-label={`${i + 1} of ${works.length}`}
-            data-carousel-slide
-            class="flex w-[var(--slide)] shrink-0 snap-center snap-always flex-col [transform:scale(var(--carousel-scale,1))]"
-            data-placeholder={work.isPlaceholder ? '' : undefined}
-          >
-            <a href={href(work)} class="group flex flex-col">
-              <!-- Fixed stage height so slides of different ratios do not make the page jump. -->
-              <span class="carousel-stage flex h-[50dvh] min-h-64 items-center md:h-[60dvh] justify-center bg-surface-container">
-                <Img image={work.cover} class="h-auto max-h-full w-auto max-w-full object-contain" />
-              </span>
-              <figcaption class="mt-space-sm flex items-baseline justify-between gap-space-md">
-                <span class="font-headline-md text-body-lg lowercase text-primary group-hover:text-secondary">
-                  {work.title}
-                </span>
-                {work.year && (
-                  <span class="shrink-0 font-meta-mono text-meta-mono uppercase text-outline">{work.year}</span>
-                )}
-              </figcaption>
-            </a>
-          </figure>
-        ))
-      }
-    </div>
   </div>
+  {
+    intro && (
+      <p class="px-page py-space-xs font-meta-mono text-meta-mono uppercase text-on-surface-variant">{intro}</p>
+    )
+  }
+
+  {
+    works.length === 0 ? (
+      <EmptyState />
+    ) : (
+      <>
+        <!-- LIST -->
+        <ul data-view-panel="list" class="flex flex-col px-page pb-space-sm pt-space-xs">
+          <li aria-hidden="true" class="grid grid-cols-12 gap-x-space-sm px-space-xs py-space-xs font-meta-mono text-meta-mono uppercase text-outline">
+            <span class="col-span-2">ref</span>
+            <span class="col-span-7 md:col-span-6">title / medium</span>
+            <span class="col-span-3 text-right md:col-span-4">
+              year<span class="hidden md:inline"> / {isJewelry ? 'status' : 'size'}</span>
+            </span>
+          </li>
+          {works.map((work) => (
+            <li data-placeholder={work.isPlaceholder ? '' : undefined}>
+              <a
+                href={href(work)}
+                class="group grid grid-cols-12 items-center gap-x-space-sm px-space-xs py-space-xs hover:bg-primary hover:text-on-primary focus-visible:bg-primary focus-visible:text-on-primary"
+              >
+                <span class="col-span-2 font-meta-mono text-meta-mono group-hover:text-secondary-fixed-dim">
+                  {workIndex(work)}
+                </span>
+                <span class="col-span-7 flex flex-col md:col-span-6">
+                  <span class="font-headline-md text-body-lg lowercase">{work.title}</span>
+                  {work.medium && (
+                    <span class="truncate font-meta-mono text-meta-mono uppercase text-outline group-hover:text-outline-variant">
+                      {work.medium}
+                    </span>
+                  )}
+                </span>
+                <span class="col-span-3 flex flex-col items-end gap-space-xs text-right font-meta-mono text-meta-mono uppercase md:col-span-4 md:flex-row md:items-center md:justify-end md:gap-space-md">
+                  <span class="hidden h-12 w-12 shrink-0 overflow-hidden bg-surface-container md:block">
+                    <Img image={work.cover} class="h-full w-full object-cover" />
+                  </span>
+                  <span class="flex flex-col items-end">
+                    <span>{work.year}</span>
+                    {work.status ? (
+                      <span class="text-secondary group-hover:text-secondary-fixed-dim">[{jewelryStatusLabel[work.status]}]</span>
+                    ) : (
+                      work.dimensions && (
+                        <span class="hidden text-outline group-hover:text-outline-variant md:inline">{work.dimensions}</span>
+                      )
+                    )}
+                  </span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+
+        <!-- GRID: a dense contact sheet -->
+        <ul data-view-panel="grid" class="grid grid-cols-2 gap-space-sm px-page pb-space-sm pt-space-sm min-[22rem]:grid-cols-3 md:grid-cols-4 md:gap-gutter lg:grid-cols-6">
+          {works.map((work) => (
+            <li class="min-w-0" data-placeholder={work.isPlaceholder ? '' : undefined}>
+              <a href={href(work)} class="group flex flex-col">
+                <span class="block aspect-square overflow-hidden bg-surface-container">
+                  <Img image={work.cover} class="h-full w-full object-cover" />
+                </span>
+                <span class="mt-space-xs flex min-w-0 flex-col">
+                  <span class="truncate font-meta-mono text-meta-mono uppercase text-outline">
+                    {workIndex(work)}
+                    {work.year ? ` / ${work.year}` : ''}
+                  </span>
+                  <span class="line-clamp-2 font-headline-md text-body-sm lowercase text-primary group-hover:text-secondary">
+                    {work.title}
+                  </span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+
+        <!-- GALLERY: a centred carousel. The focused slide sits in the middle at full size, its
+             neighbours are smaller. The stage FILLS the free height (flex), so the whole view fits
+             the screen with no vertical scrolling. Without JavaScript it is a natively scrollable
+             snap strip (scrollbar visible). The script below adds prev/next, a live counter, arrow
+             keys, focus handling and the scaling. No autoplay, ever. `@container` lets slide widths
+             and the centring padding use container units (cqw). -->
+        <div
+          data-view-panel="gallery"
+          data-carousel
+          role="group"
+          aria-roledescription="carousel"
+          aria-label="Gallery"
+          class="@container flex min-h-0 flex-1 flex-col pb-space-xs pt-space-xs"
+        >
+          <!-- Hidden until the script runs (and only when there is something to scroll): without
+               the script these buttons would do nothing. -->
+          <div
+            data-carousel-controls
+            class="hidden shrink-0 flex-wrap items-center justify-between gap-x-space-md px-page font-meta-mono text-meta-mono uppercase"
+          >
+            <button type="button" data-carousel-prev class={carouselButton}>[&nbsp;← prev&nbsp;]</button>
+            <div class="flex flex-col items-center">
+              <p data-carousel-status aria-live="polite" class="text-on-surface-variant">
+                01 / {String(works.length).padStart(2, '0')}
+              </p>
+              <!-- Keyboard cue for pointer devices (touch has no arrow keys). Turns dark while the
+                   carousel has focus, i.e. while the arrow keys are live. Decorative: the track's
+                   own aria-label already tells assistive tech. -->
+              <p aria-hidden="true" class="carousel-hint hidden pointer-fine:block">use ← → keys</p>
+            </div>
+            <button type="button" data-carousel-next class={carouselButton}>[&nbsp;next →&nbsp;]</button>
+          </div>
+          <div
+            data-carousel-track
+            tabindex="0"
+            aria-label="Slides. Use the left and right arrow keys, or scroll sideways."
+            class="relative flex min-h-56 flex-1 snap-x snap-mandatory gap-space-md overflow-x-auto overflow-y-hidden px-[calc((100cqw_-_var(--slide))_/_2)] py-space-sm [--slide:min(68cqw,30rem)] md:[--slide:min(46cqw,36rem)]"
+          >
+            {works.map((work, i) => (
+              <figure
+                role="group"
+                aria-roledescription="slide"
+                aria-label={`${i + 1} of ${works.length}`}
+                data-carousel-slide
+                class="flex w-[var(--slide)] shrink-0 snap-center snap-always flex-col [transform:scale(var(--carousel-scale,1))]"
+                data-placeholder={work.isPlaceholder ? '' : undefined}
+              >
+                <a href={href(work)} class="group flex min-h-0 flex-1 flex-col">
+                  <!-- The stage takes whatever height is left; the image is positioned inside it
+                       so its natural size never forces the page taller. -->
+                  <span class="carousel-stage relative min-h-0 flex-1 bg-surface-container">
+                    <Img
+                      image={work.cover}
+                      class="absolute inset-0 m-auto h-auto max-h-full w-auto max-w-full object-contain"
+                    />
+                  </span>
+                  <figcaption class="mt-space-xs flex shrink-0 items-baseline justify-between gap-space-md">
+                    <span class="truncate font-headline-md text-body-lg lowercase text-primary group-hover:text-secondary">
+                      {work.title}
+                    </span>
+                    {work.year && (
+                      <span class="shrink-0 font-meta-mono text-meta-mono uppercase text-outline">{work.year}</span>
+                    )}
+                  </figcaption>
+                </a>
+              </figure>
+            ))}
+          </div>
+        </div>
+      </>
+    )
+  }
 </div>
 
 <script>
@@ -204,8 +231,9 @@ const carouselButton =
 </script>
 
 <script>
-  // Carousel enhancement for the gallery view: prev/next buttons, a live "03 / 07" counter and
-  // arrow keys. Without this script the gallery is still a natively scrollable snap strip.
+  // Carousel enhancement for the gallery view: a centred slide with smaller neighbours, prev/next
+  // buttons, a live "03 / 07" counter, arrow keys and focus handling. Without this script the
+  // gallery is still a natively scrollable snap strip.
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   for (const carousel of document.querySelectorAll<HTMLElement>('[data-carousel]')) {

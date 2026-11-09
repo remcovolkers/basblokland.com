@@ -1,6 +1,7 @@
 ---
 import type { GetStaticPaths } from 'astro';
 import WorkDetail from '../../components/WorkDetail.astro';
+import WorkNav from '../../components/WorkNav.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getWorks } from '../../lib/content';
 
@@ -10,6 +11,8 @@ export const getStaticPaths = (() =>
 const { work } = Astro.props;
 ---
 
-<BaseLayout title={work.title} {...work.shortText ? { description: work.shortText } : {}}>
+<!-- Detail pages: no mobile tab bar (like the Stitch detail screen); the pinned sub-header has the way back. -->
+<BaseLayout title={work.title} tabBar={false} {...work.shortText ? { description: work.shortText } : {}}>
+  <WorkNav slot="subheader" work={work} />
   <WorkDetail work={work} />
 </BaseLayout>

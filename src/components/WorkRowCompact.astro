@@ -1,0 +1,44 @@
+---
+/**
+ * Compact row (thumbnail, title, medium, year, status) for the home page. Replaces the tall
+ * cards so the home page needs far less vertical scrolling. One link; the cover is cropped to a
+ * small square here, detail pages show it uncropped.
+ */
+import { url } from '../lib/url';
+import type { Work } from '../lib/types';
+import Img from './Img.astro';
+import StatusTag from './StatusTag.astro';
+// (year may be absent: the empty span keeps the grid's third column)
+
+interface Props {
+  work: Work;
+}
+const { work } = Astro.props;
+---
+
+<article data-placeholder={work.isPlaceholder ? '' : undefined}>
+  <a
+    href={url(`${work.section}/${work.slug}`)}
+    class="group grid min-h-14 grid-cols-[3.5rem_minmax(0,1fr)_auto] items-center gap-space-md py-space-xs md:grid-cols-[6rem_minmax(0,1fr)_auto] md:py-space-sm"
+  >
+    <span class="block h-14 w-14 overflow-hidden bg-surface-container md:h-24 md:w-24">
+      <Img image={work.cover} class="h-full w-full object-cover" />
+    </span>
+    <span class="flex min-w-0 flex-col">
+      <span class="truncate font-headline-md text-body-lg lowercase text-primary group-hover:text-secondary">
+        {work.title}
+      </span>
+      <!-- Second line: jewelry shows its availability (it matters more than the material here). -->
+      {
+        work.status ? (
+          <StatusTag status={work.status} />
+        ) : (
+          work.medium && (
+            <span class="truncate font-meta-mono text-meta-mono uppercase text-outline">{work.medium}</span>
+          )
+        )
+      }
+    </span>
+    <span class="font-meta-mono text-meta-mono uppercase text-outline">{work.year}</span>
+  </a>
+</article>

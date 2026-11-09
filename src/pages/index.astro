@@ -1,10 +1,8 @@
 ---
-import BracketLink from '../components/BracketLink.astro';
-import Divider from '../components/Divider.astro';
+import HomeSection from '../components/HomeSection.astro';
 import LabEntryItem from '../components/LabEntryItem.astro';
 import LogoMark from '../components/LogoMark.astro';
-import SectionHeader from '../components/SectionHeader.astro';
-import WorkCard from '../components/WorkCard.astro';
+import WorkRowCompact from '../components/WorkRowCompact.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getLabEntries, getSiteSettings, getWorks } from '../lib/content';
 import { sections, wordmark } from '../lib/site';
@@ -17,12 +15,13 @@ const lab = getLabEntries();
 // Without a confirmed statement the page still needs its h1: fall back to the artist's name.
 const statement = settings.homeStatement ?? wordmark;
 const placeholder = settings.isPlaceholder ? '' : undefined;
+const anySection = art.length + jewelry.length + lab.length > 0;
 ---
 
 <BaseLayout>
-  <!-- Statement + large logo. Desktop two-column layout is a proposal (Stitch is mobile only). -->
-  <section class="grid grid-cols-1 gap-space-lg px-page pb-space-lg pt-space-md md:grid-cols-12 md:items-center">
-    <div class="flex flex-col gap-space-sm md:col-span-8">
+  <!-- Compact hero: statement left, logo right. -->
+  <section class="flex items-center justify-between gap-space-md px-page pb-space-sm pt-space-sm md:pb-space-md md:pt-space-md">
+    <div class="flex min-w-0 flex-col gap-space-xs">
       {
         settings.statusLine && (
           <p class="font-meta-mono text-meta-mono uppercase text-secondary" data-placeholder={placeholder}>
@@ -31,81 +30,57 @@ const placeholder = settings.isPlaceholder ? '' : undefined;
         )
       }
       <h1
-        class="font-headline-xl-mobile text-headline-xl-mobile lowercase text-primary md:text-headline-xl"
+        class="font-headline-lg-mobile text-headline-lg-mobile lowercase text-primary md:text-headline-xl"
         data-placeholder={placeholder}
       >
         {statement}
       </h1>
     </div>
-    <div class="md:col-span-4 md:justify-self-end">
-      <LogoMark class="h-auto w-40 max-w-full text-primary md:w-56" />
-    </div>
+    <LogoMark class="h-20 w-auto shrink-0 text-primary md:h-36" />
   </section>
 
+  <!-- Three sections: side by side on desktop (fits one screen), stacked compact rows on a phone. -->
   {
-    art.length > 0 && (
-      <>
-        <Divider />
-        <section class="flex flex-col gap-space-md px-page py-space-md">
-          <SectionHeader no={sections.art.no} title={sections.art.label} count={art.length} />
-          <div class="grid grid-cols-1 gap-space-lg md:grid-cols-3 md:gap-gutter">
-            {art.slice(0, 3).map((work) => <WorkCard work={work} />)}
-          </div>
-          <div class="flex justify-end">
-            <BracketLink href={url(sections.art.href)}>view all art</BracketLink>
-          </div>
-        </section>
-      </>
-    )
-  }
-
-  {
-    jewelry.length > 0 && (
-      <>
-        <Divider />
-        <section class="flex flex-col gap-space-md px-page py-space-md">
-          <SectionHeader no={sections.jewelry.no} title={sections.jewelry.label} count={jewelry.length} />
-          <div class="grid grid-cols-1 gap-space-lg md:grid-cols-3 md:gap-gutter">
-            {jewelry.slice(0, 3).map((work) => (
-              <WorkCard work={work} enquire={work.status === 'available' || work.status === 'made-to-order'} />
+    anySection && (
+      <div class="grid grid-cols-1 gap-x-gutter gap-y-space-sm px-page pb-space-sm md:grid-cols-3">
+        {art.length > 0 && (
+          <HomeSection no={sections.art.no} title={sections.art.label} count={art.length} href={url(sections.art.href)} linkLabel="view all art">
+            {art.slice(0, 3).map((work, i) => (
+              <div class={i >= 2 ? 'hidden md:block' : ''}>
+                <WorkRowCompact work={work} />
+              </div>
             ))}
-          </div>
-          <div class="flex justify-end">
-            <BracketLink href={url(sections.jewelry.href)}>view all jewelry</BracketLink>
-          </div>
-        </section>
-      </>
-    )
-  }
-
-  {
-    lab.length > 0 && (
-      <>
-        <Divider />
-        <section class="flex flex-col gap-space-md px-page py-space-md">
-          <SectionHeader no={sections.lab.no} title={sections.lab.label} count={lab.length} />
-          <div class="flex flex-col gap-space-sm md:grid md:grid-cols-3 md:items-start md:gap-gutter">
-            {lab.slice(0, 3).map((entry) => <LabEntryItem entry={entry} />)}
-          </div>
-          <div class="flex justify-end">
-            <BracketLink href={url(sections.lab.href)}>enter lab</BracketLink>
-          </div>
-        </section>
-      </>
+          </HomeSection>
+        )}
+        {jewelry.length > 0 && (
+          <HomeSection no={sections.jewelry.no} title={sections.jewelry.label} count={jewelry.length} href={url(sections.jewelry.href)} linkLabel="view all jewelry">
+            {jewelry.slice(0, 3).map((work, i) => (
+              <div class={i >= 2 ? 'hidden md:block' : ''}>
+                <WorkRowCompact work={work} />
+              </div>
+            ))}
+          </HomeSection>
+        )}
+        {lab.length > 0 && (
+          <HomeSection no={sections.lab.no} title={sections.lab.label} count={lab.length} href={url(sections.lab.href)} linkLabel="enter lab">
+            <div class="flex flex-col gap-space-xs pt-space-xs">
+              {lab.slice(0, 3).map((entry, i) => (
+                <div class={i >= 2 ? 'hidden md:block' : ''}>
+                  <LabEntryItem entry={entry} />
+                </div>
+              ))}
+            </div>
+          </HomeSection>
+        )}
+      </div>
     )
   }
 
   {
     settings.colophon && (
-      <section class="px-page pb-space-md pt-space-lg">
-        <div class="flex flex-col gap-space-sm bg-surface-container p-space-md" data-placeholder={placeholder}>
-          <p class="max-w-prose text-body-md text-on-surface-variant">{settings.colophon}</p>
-          <div class="flex gap-space-md">
-            <BracketLink href={url('/about/')} arrow={false}>about</BracketLink>
-            <BracketLink href={url('/contact/')} arrow={false}>contact</BracketLink>
-          </div>
-        </div>
-      </section>
+      <p class="max-w-prose px-page pb-space-sm text-body-sm text-on-surface-variant" data-placeholder={placeholder}>
+        {settings.colophon}
+      </p>
     )
   }
 </BaseLayout>

@@ -17,9 +17,11 @@ interface Props {
   ogImage?: string;
   /** Force noindex (e.g. the 404 page), independent of prototype mode. */
   noindex?: boolean;
+  /** Show the mobile tab bar. Off on detail pages, which have their own sub-header with a way back. */
+  tabBar?: boolean;
 }
 
-const { title, description = siteDescription, ogImage = '/og.png', noindex = false } = Astro.props;
+const { title, description = siteDescription, ogImage = '/og.png', noindex = false, tabBar = true } = Astro.props;
 
 const fullTitle = title ? `${title} — ${wordmark}` : wordmark;
 // Pages that are noindex (e.g. 404) are not real URLs, so they get no canonical / og:url.
@@ -60,11 +62,20 @@ const ogImageUrl = absoluteUrl(ogImage, Astro.site);
     class="flex min-h-dvh flex-col bg-surface-container-high font-body-md text-body-md text-on-surface"
   >
     <SkipLink />
-    <SiteHeader />
-    <main id="main" tabindex="-1" class="mx-auto w-full max-w-[90rem] flex-1 focus:outline-none">
+    <!-- Pinned top block: header plus an optional sub-header (e.g. prev/next on detail pages).
+         One sticky wrapper, so the sub-header never needs to know the header's height. -->
+    <div data-chrome class="sticky top-0 z-40">
+      <SiteHeader />
+      <slot name="subheader" />
+    </div>
+    <!-- flex column so a page can let one part (e.g. the gallery stage) fill the free height -->
+    <main id="main" tabindex="-1" class="mx-auto flex w-full max-w-[90rem] flex-1 flex-col focus:outline-none">
       <slot />
     </main>
-    <Footer />
-    <TabBar />
+    <!-- Pinned bottom dock: footer lines + (mobile) tab bar stay in view while scrolling. -->
+    <div data-chrome class="sticky bottom-0 z-40">
+      <Footer />
+      {tabBar && <TabBar />}
+    </div>
   </body>
 </html>

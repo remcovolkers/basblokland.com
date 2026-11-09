@@ -1,4 +1,9 @@
 ---
+/**
+ * One CV group (exhibitions, residencies, ...). Native <details>, open in the markup so everything is
+ * visible without JavaScript and on desktop. The about page closes them on small screens to keep the
+ * page short; visitors open what they want.
+ */
 import type { CvGroup } from '../lib/types';
 
 interface Props {
@@ -7,12 +12,18 @@ interface Props {
 const { group } = Astro.props;
 ---
 
-<section class="flex flex-col gap-space-sm">
-  <h3 class="font-meta-mono-bold text-meta-mono-bold uppercase text-primary">{group.title}</h3>
-  <ul class="flex flex-col">
+<details open data-cv-group class="group border-t border-outline-variant">
+  <summary class="flex min-h-11 cursor-pointer list-none items-center justify-between gap-space-md font-meta-mono-bold text-meta-mono-bold uppercase text-primary hover:text-secondary [&::-webkit-details-marker]:hidden">
+    <span>{group.title}</span>
+    <span class="font-meta-mono text-meta-mono font-normal text-outline">
+      <span class="group-open:hidden">[&nbsp;show&nbsp;]</span>
+      <span class="hidden group-open:inline">[&nbsp;hide&nbsp;]</span>
+    </span>
+  </summary>
+  <ul class="flex flex-col pb-space-xs">
     {
       group.items.map((item) => (
-        <li class="flex items-start gap-space-md border-t border-outline-variant py-space-sm">
+        <li class="flex items-start gap-space-md py-space-xs">
           <span class="w-12 shrink-0 font-meta-mono text-meta-mono text-outline">{item.year ?? ''}</span>
           <span class="flex flex-col">
             <span class="text-body-md text-on-surface">{item.title}</span>
@@ -24,4 +35,4 @@ const { group } = Astro.props;
       ))
     }
   </ul>
-</section>
+</details>

@@ -6,14 +6,10 @@ const pathname = Astro.url.pathname;
 ---
 
 <!--
-  Mobile tab bar. Sticky (not fixed) at the end of <body>, so it pins to the bottom of the
-  viewport while scrolling but never covers the footer, and it can wrap at large text sizes.
+  Mobile tab bar, the bottom row of the pinned dock (BaseLayout). It can wrap at large text sizes.
 -->
-<nav
-  aria-label="Main"
-  class="sticky bottom-0 z-40 border-t border-outline-variant bg-surface-container-high pb-safe md:hidden"
->
-  <ul class="flex min-h-16 flex-wrap items-center justify-between px-gutter">
+<nav aria-label="Main" class="border-t border-outline-variant bg-surface-container-high pb-safe md:hidden">
+  <ul class="flex min-h-13 flex-wrap items-center justify-between px-gutter">
     {
       navItems.map((item) => {
         const active = isActive(item, pathname);
