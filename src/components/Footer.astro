@@ -33,7 +33,8 @@ const linkClass = 'inline-flex min-h-11 items-center hover:text-secondary';
       }
     </div>
     <p class="flex flex-wrap items-center gap-x-space-lg pb-space-xs text-outline md:pb-0">
-      <span>© {year} {wordmark}</span>
+      <!-- The © line is dropped on phones to save height (the pinned dock is already 3 rows there). -->
+      <span class="hidden md:inline">© {year} {wordmark}</span>
       {isPrototype && <span>prototype / placeholder content</span>}
     </p>
   </div>
