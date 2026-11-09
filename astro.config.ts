@@ -60,6 +60,9 @@ if (!/^https?:\/\/[^/\s]+$/.test(site)) {
 }
 const base = normalizeBase(rawBase);
 const isPrototype = env['PUBLIC_PROTOTYPE'] === 'true';
+// Same rule as src/lib/sanity/config.ts. Exposed to the bundler as a constant so the fixture branch
+// in content.ts is dead code in a Sanity-backed build and its placeholder images are not emitted.
+const usesFixtures = !env['SANITY_PROJECT_ID'] || env['CONTENT_SOURCE'] === 'fixtures';
 
 if (env['CI'] && !isPrototype && !env['SITE_URL']) {
   console.warn(
@@ -80,5 +83,6 @@ export default defineConfig({
   integrations: isPrototype ? [] : [sitemap()],
   vite: {
     plugins: [tailwindcss()],
+    define: { __USE_FIXTURES__: JSON.stringify(usesFixtures) },
   },
 });

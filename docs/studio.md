@@ -5,6 +5,13 @@ own `node_modules`), separate from the Astro site. It is **hosted by Sanity** (f
 `https://<host>.sanity.studio`; it is not embedded in the website. Its interface and every field label
 are Dutch (`@sanity/locale-nl-nl` plus Dutch labels in the schema).
 
+## This project
+
+- Sanity project id: `p9agaeq5` (not secret). Dataset `production`, **public**: checked, it answers
+  anonymous queries with HTTP 200.
+- As of 2026-11-09 the dataset is empty (0 documents), so the site shows its empty states when built
+  against it.
+
 ## What is in it
 
 | Menu item (Dutch) | What it is |

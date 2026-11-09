@@ -19,14 +19,19 @@ async function load(): Promise<LoadedContent> {
   // A configured Sanity that fails (network, bad query, bad content) must FAIL the build: silently
   // falling back to placeholders would publish the wrong site.
   if (contentSource === 'sanity') return loadFromSanity(sanityConfig);
-  // Fixtures are imported only here, so a Sanity-backed build does not bundle the placeholder images.
-  const [{ worksFixture }, { labFixture }, { aboutFixture }, { siteSettingsFixture }] = await Promise.all([
-    import('./fixtures/works'),
-    import('./fixtures/lab'),
-    import('./fixtures/about'),
-    import('./fixtures/site-settings'),
-  ]);
-  return { works: worksFixture, lab: labFixture, about: aboutFixture, settings: siteSettingsFixture };
+  // __USE_FIXTURES__ is a build-time constant (astro.config.ts): in a Sanity-backed build it is a
+  // literal `false`, this whole branch is removed as dead code, and the placeholder images and sound
+  // are not emitted into dist/.
+  if (__USE_FIXTURES__) {
+    const [{ worksFixture }, { labFixture }, { aboutFixture }, { siteSettingsFixture }] = await Promise.all([
+      import('./fixtures/works'),
+      import('./fixtures/lab'),
+      import('./fixtures/about'),
+      import('./fixtures/site-settings'),
+    ]);
+    return { works: worksFixture, lab: labFixture, about: aboutFixture, settings: siteSettingsFixture };
+  }
+  throw new Error('Content source mismatch: the build constant says Sanity but the runtime chose the fixtures.');
 }
 
 const data = await load();
