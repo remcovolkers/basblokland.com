@@ -1,0 +1,15 @@
+---
+// mailto enquiry. Renders nothing until an e-mail address is known (Sanity siteSettings).
+import { getSiteSettings } from '../lib/content';
+import BracketLink from './BracketLink.astro';
+
+interface Props {
+  /** What the enquiry is about; becomes the mail subject. */
+  about: string;
+}
+const { about } = Astro.props;
+const { email } = getSiteSettings();
+const href = email ? `mailto:${email}?subject=${encodeURIComponent(`Enquiry: ${about}`)}` : undefined;
+---
+
+{href && <BracketLink href={href}>enquire</BracketLink>}

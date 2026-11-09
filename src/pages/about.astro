@@ -1,8 +1,46 @@
 ---
-import PageStub from '../components/PageStub.astro';
+import CvGroup from '../components/CvGroup.astro';
+import EmptyState from '../components/EmptyState.astro';
+import Img from '../components/Img.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { getAbout } from '../lib/content';
+
+const about = getAbout();
 ---
 
 <BaseLayout title="about">
-  <PageStub title="about" />
+  <div class="px-page pb-space-md pt-space-md">
+    <h1 class="font-headline-xl-mobile text-headline-xl-mobile lowercase text-primary md:text-headline-xl">about</h1>
+  </div>
+  {
+    about ? (
+      <div
+        class="grid grid-cols-1 gap-space-lg px-page pb-space-xl md:grid-cols-12 md:gap-gutter-desktop"
+        data-placeholder={about.isPlaceholder ? '' : undefined}
+      >
+        {about.portrait && (
+          <figure class="md:col-span-5">
+            <Img image={about.portrait} class="h-auto w-full" loading="eager" />
+            {about.portrait.caption && (
+              <figcaption class="pt-space-xs font-meta-mono text-meta-mono uppercase text-outline">
+                {about.portrait.caption}
+              </figcaption>
+            )}
+          </figure>
+        )}
+        <div class:list={['flex flex-col gap-space-xl', about.portrait ? 'md:col-span-7' : 'md:col-span-8']}>
+          <div class="flex max-w-prose flex-col gap-space-md text-body-lg text-on-surface">
+            {about.bio.map((paragraph) => <p>{paragraph}</p>)}
+          </div>
+          {about.cvGroups.length > 0 && (
+            <div class="flex flex-col gap-space-lg bg-surface-container-low p-space-md">
+              {about.cvGroups.map((group) => <CvGroup group={group} />)}
+            </div>
+          )}
+        </div>
+      </div>
+    ) : (
+      <EmptyState />
+    )
+  }
 </BaseLayout>

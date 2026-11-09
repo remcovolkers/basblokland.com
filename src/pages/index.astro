@@ -1,8 +1,111 @@
 ---
-import PageStub from '../components/PageStub.astro';
+import BracketLink from '../components/BracketLink.astro';
+import Divider from '../components/Divider.astro';
+import LabEntryItem from '../components/LabEntryItem.astro';
+import LogoMark from '../components/LogoMark.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import WorkCard from '../components/WorkCard.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { getLabEntries, getSiteSettings, getWorks } from '../lib/content';
+import { sections, wordmark } from '../lib/site';
+import { url } from '../lib/url';
+
+const settings = getSiteSettings();
+const art = getWorks('art');
+const jewelry = getWorks('jewelry');
+const lab = getLabEntries();
+// Without a confirmed statement the page still needs its h1: fall back to the artist's name.
+const statement = settings.homeStatement ?? wordmark;
+const placeholder = settings.isPlaceholder ? '' : undefined;
 ---
 
 <BaseLayout>
-  <PageStub title="bas den exter blokland" />
+  <!-- Statement + large logo. Desktop two-column layout is a proposal (Stitch is mobile only). -->
+  <section class="grid grid-cols-1 gap-space-lg px-page pb-space-lg pt-space-md md:grid-cols-12 md:items-center">
+    <div class="flex flex-col gap-space-sm md:col-span-8">
+      {
+        settings.statusLine && (
+          <p class="font-meta-mono text-meta-mono uppercase text-secondary" data-placeholder={placeholder}>
+            [ status: {settings.statusLine} ]
+          </p>
+        )
+      }
+      <h1
+        class="font-headline-xl-mobile text-headline-xl-mobile lowercase text-primary md:text-headline-xl"
+        data-placeholder={placeholder}
+      >
+        {statement}
+      </h1>
+    </div>
+    <div class="md:col-span-4 md:justify-self-end">
+      <LogoMark class="h-auto w-40 max-w-full text-primary md:w-56" />
+    </div>
+  </section>
+
+  {
+    art.length > 0 && (
+      <>
+        <Divider />
+        <section class="flex flex-col gap-space-md px-page py-space-md">
+          <SectionHeader no={sections.art.no} title={sections.art.label} count={art.length} />
+          <div class="grid grid-cols-1 gap-space-lg md:grid-cols-3 md:gap-gutter">
+            {art.slice(0, 3).map((work) => <WorkCard work={work} />)}
+          </div>
+          <div class="flex justify-end">
+            <BracketLink href={url(sections.art.href)}>view all art</BracketLink>
+          </div>
+        </section>
+      </>
+    )
+  }
+
+  {
+    jewelry.length > 0 && (
+      <>
+        <Divider />
+        <section class="flex flex-col gap-space-md px-page py-space-md">
+          <SectionHeader no={sections.jewelry.no} title={sections.jewelry.label} count={jewelry.length} />
+          <div class="grid grid-cols-1 gap-space-lg md:grid-cols-3 md:gap-gutter">
+            {jewelry.slice(0, 3).map((work) => (
+              <WorkCard work={work} enquire={work.status === 'available' || work.status === 'made-to-order'} />
+            ))}
+          </div>
+          <div class="flex justify-end">
+            <BracketLink href={url(sections.jewelry.href)}>view all jewelry</BracketLink>
+          </div>
+        </section>
+      </>
+    )
+  }
+
+  {
+    lab.length > 0 && (
+      <>
+        <Divider />
+        <section class="flex flex-col gap-space-md px-page py-space-md">
+          <SectionHeader no={sections.lab.no} title={sections.lab.label} count={lab.length} />
+          <div class="flex flex-col gap-space-sm md:grid md:grid-cols-3 md:items-start md:gap-gutter">
+            {lab.slice(0, 3).map((entry) => <LabEntryItem entry={entry} />)}
+          </div>
+          <div class="flex justify-end">
+            <BracketLink href={url(sections.lab.href)}>enter lab</BracketLink>
+          </div>
+        </section>
+      </>
+    )
+  }
+
+  {
+    settings.colophon && (
+      <section class="px-page pb-space-md pt-space-lg">
+        <div class="flex flex-col gap-space-sm bg-surface-container p-space-md" data-placeholder={placeholder}>
+          <p class="max-w-prose text-body-md text-on-surface-variant">{settings.colophon}</p>
+          <div class="flex gap-space-md">
+            <BracketLink href={url('/about/')} arrow={false}>about</BracketLink>
+            <BracketLink href={url('/contact/')} arrow={false}>contact</BracketLink>
+          </div>
+        </div>
+      </section>
+    )
+  }
 </BaseLayout>

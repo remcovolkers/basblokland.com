@@ -1,0 +1,69 @@
+---
+/**
+ * Detail page body for an art work or a jewelry piece. Images are shown uncropped at their
+ * natural ratio. Mobile: stacked. Desktop (md+): sticky info column beside the images
+ * (a PROPOSAL; Stitch only has the mobile layout).
+ */
+import { getWorkNeighbours, workIndex } from '../lib/content';
+import { sections } from '../lib/site';
+import { url } from '../lib/url';
+import type { DetailRow, Work } from '../lib/types';
+import AudioPlayer from './AudioPlayer.astro';
+import BracketLink from './BracketLink.astro';
+import EnquireLink from './EnquireLink.astro';
+import MediaPlate from './MediaPlate.astro';
+import SpecList from './SpecList.astro';
+import StatusTag from './StatusTag.astro';
+
+interface Props {
+  work: Work;
+}
+const { work } = Astro.props;
+const section = sections[work.section];
+const { prev, next } = getWorkNeighbours(work);
+const to = (w: Work) => url(`${w.section}/${w.slug}`);
+
+const rows: DetailRow[] = [
+  ...(work.medium ? [{ label: work.section === 'jewelry' ? 'material' : 'medium', value: work.medium }] : []),
+  ...(work.dimensions ? [{ label: work.section === 'jewelry' ? 'size' : 'dimensions', value: work.dimensions }] : []),
+  ...(work.year ? [{ label: 'year', value: String(work.year) }] : []),
+  ...work.details,
+];
+const plates = [work.cover, ...work.gallery];
+// Jewelry can only be enquired about while it is obtainable. Art enquiries are always welcome.
+const canEnquire = work.section === 'art' || work.status === 'available' || work.status === 'made-to-order';
+---
+
+<article class="pb-space-xl" data-placeholder={work.isPlaceholder ? '' : undefined}>
+  <nav
+    aria-label="Browse works"
+    class="flex flex-wrap items-center justify-between gap-x-space-md border-b border-outline-variant px-page font-meta-mono text-meta-mono uppercase"
+  >
+    <div class="flex items-center gap-space-md">
+      {prev ? <BracketLink href={to(prev)} arrow={false}>← prev {workIndex(prev)}</BracketLink> : <span class="inline-flex min-h-11 items-center text-outline">[&nbsp;← prev&nbsp;]</span>}
+      {next ? <BracketLink href={to(next)} arrow={false}>next {workIndex(next)} →</BracketLink> : <span class="inline-flex min-h-11 items-center text-outline">[&nbsp;next →&nbsp;]</span>}
+    </div>
+    <BracketLink href={url(section.href)} arrow={false}>index</BracketLink>
+  </nav>
+
+  <div class="grid grid-cols-1 gap-space-lg px-page pt-space-md md:grid-cols-12 md:gap-gutter-desktop">
+    <header class="flex flex-col gap-space-md md:col-span-5 md:self-start lg:sticky lg:top-24 lg:col-span-4">
+      <p class="flex items-baseline justify-between gap-space-md font-meta-mono text-meta-mono uppercase text-outline">
+        <span>{section.no} / {section.label}</span>
+        <span>[{section.no}.{workIndex(work)}]</span>
+      </p>
+      <h1 class="font-headline-lg-mobile text-headline-lg-mobile lowercase text-primary md:text-headline-lg">
+        {work.title}
+      </h1>
+      {work.status && <StatusTag status={work.status} />}
+      <SpecList rows={rows} />
+      {work.shortText && <p class="max-w-prose text-body-md text-on-surface-variant">{work.shortText}</p>}
+      {work.audio && <AudioPlayer audio={work.audio} />}
+      {canEnquire && <EnquireLink about={work.title} />}
+    </header>
+
+    <div class="flex flex-col gap-space-lg md:col-span-7 lg:col-span-8">
+      {plates.map((image, i) => <MediaPlate image={image} figure={i + 1} eager={i === 0} />)}
+    </div>
+  </div>
+</article>

@@ -1,0 +1,28 @@
+---
+/**
+ * The one place images are rendered. Always carries width/height (no layout shift), CMS alt text,
+ * lazy loading and the grayscale-by-default treatment. The Sanity step swaps the internals for
+ * srcset / avif / webp / lqip without touching any page.
+ */
+import type { ImageRef } from '../lib/types';
+
+interface Props {
+  image: ImageRef;
+  class?: string;
+  loading?: 'lazy' | 'eager';
+  fetchpriority?: 'high' | 'low' | 'auto' | undefined;
+}
+
+const { image, class: className = '', loading = 'lazy', fetchpriority } = Astro.props;
+---
+
+<img
+  src={image.src}
+  width={image.width}
+  height={image.height}
+  alt={image.alt}
+  loading={loading}
+  decoding="async"
+  fetchpriority={fetchpriority}
+  class:list={['media-gray', className]}
+/>

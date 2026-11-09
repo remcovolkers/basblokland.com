@@ -1,8 +1,25 @@
 ---
-import PageStub from '../../components/PageStub.astro';
+import EmptyState from '../../components/EmptyState.astro';
+import LabEntryItem from '../../components/LabEntryItem.astro';
+import SectionHeader from '../../components/SectionHeader.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getLabEntries } from '../../lib/content';
+import { sections } from '../../lib/site';
+
+const entries = getLabEntries();
 ---
 
 <BaseLayout title="lab">
-  <PageStub title="lab" />
+  <div class="px-page pb-space-md pt-space-md">
+    <SectionHeader as="h1" no={sections.lab.no} title={sections.lab.label} count={entries.length} />
+  </div>
+  {
+    entries.length > 0 ? (
+      <div class="flex flex-col gap-space-sm px-page pb-space-xl md:grid md:grid-cols-2 md:items-start md:gap-gutter">
+        {entries.map((entry) => <LabEntryItem entry={entry} />)}
+      </div>
+    ) : (
+      <EmptyState />
+    )
+  }
 </BaseLayout>

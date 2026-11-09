@@ -78,6 +78,16 @@ function checkUrl(page, raw, kind, pageIds) {
   if (!resolvesToFile(afterBase)) err(page, `"${value}" does not resolve to a file in dist/`);
 }
 
+const EMBED_HOSTS = ['bandcamp.com', 'soundcloud.com'];
+function isEmbedHost(value) {
+  try {
+    const host = new URL(value).hostname;
+    return EMBED_HOSTS.some((h) => host === h || host.endsWith(`.${h}`));
+  } catch {
+    return false;
+  }
+}
+
 let urlCount = 0;
 for (const file of htmlFiles) {
   const page = toUrlPath(file);
@@ -101,7 +111,11 @@ for (const file of htmlFiles) {
     }
     for (const n of ['href', 'src', 'poster', 'action', 'data-src']) {
       const v = attr(n);
-      if (v !== undefined) found.push([v, isLink ? 'link' : 'resource']);
+      if (v === undefined) continue;
+      // The only allowed third-party resource: Bandcamp / SoundCloud player iframes. They sit inside
+      // a closed <details> and load lazily, so nothing is requested until the visitor opens them.
+      const embed = lower === 'iframe' && isEmbedHost(v);
+      found.push([v, isLink || embed ? 'link' : 'resource']);
     }
     const srcset = attr('srcset');
     if (srcset) for (const part of srcset.split(',')) found.push([part.trim().split(/\s+/)[0], 'resource']);

@@ -1,0 +1,27 @@
+---
+import type { CvGroup } from '../lib/types';
+
+interface Props {
+  group: CvGroup;
+}
+const { group } = Astro.props;
+---
+
+<section class="flex flex-col gap-space-sm">
+  <h3 class="font-meta-mono-bold text-meta-mono-bold uppercase text-primary">{group.title}</h3>
+  <ul class="flex flex-col">
+    {
+      group.items.map((item) => (
+        <li class="flex items-start gap-space-md border-t border-outline-variant py-space-sm">
+          <span class="w-12 shrink-0 font-meta-mono text-meta-mono text-outline">{item.year ?? ''}</span>
+          <span class="flex flex-col">
+            <span class="text-body-md text-on-surface">{item.title}</span>
+            {item.detail && (
+              <span class="font-meta-mono text-meta-mono uppercase text-outline">{item.detail}</span>
+            )}
+          </span>
+        </li>
+      ))
+    }
+  </ul>
+</section>

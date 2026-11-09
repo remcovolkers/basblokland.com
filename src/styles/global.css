@@ -175,6 +175,47 @@
   }
 }
 
+@layer components {
+  /* Images are grayscale by default. Colour returns on hover (pointer devices only) and on
+     keyboard focus of the surrounding link. Touch devices stay grayscale. */
+  .media-gray {
+    filter: grayscale(1);
+    transition: filter 150ms ease;
+  }
+  @media (hover: hover) {
+    a:hover .media-gray,
+    .media-gray:hover {
+      filter: none;
+    }
+  }
+  a:focus-visible .media-gray {
+    filter: none;
+  }
+
+  .view-option:has(input:checked) {
+    color: var(--color-secondary);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  .view-option:has(input:focus-visible) {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+  }
+}
+
+/* List / Grid / Gallery toggle. Pure CSS: a radio group inside .view-root decides which panel is
+   visible, so it works without JavaScript. (JS only remembers the choice in the URL hash.)
+   Browsers without :has() simply show all three panels.
+   Deliberately UNLAYERED: Tailwind's display utilities (flex, grid) live in a later cascade layer
+   and would otherwise override this display:none. */
+@supports selector(:has(*)) {
+  .view-root:not(:has(input[value='list']:checked)) [data-view-panel='list'],
+  .view-root:not(:has(input[value='grid']:checked)) [data-view-panel='grid'],
+  .view-root:not(:has(input[value='gallery']:checked)) [data-view-panel='gallery'] {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,

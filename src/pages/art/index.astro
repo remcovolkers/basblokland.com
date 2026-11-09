@@ -1,8 +1,17 @@
 ---
-import PageStub from '../../components/PageStub.astro';
+import EmptyState from '../../components/EmptyState.astro';
+import SectionHeader from '../../components/SectionHeader.astro';
+import WorksIndex from '../../components/WorksIndex.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getWorks } from '../../lib/content';
+import { sections } from '../../lib/site';
+
+const works = getWorks('art');
 ---
 
 <BaseLayout title="art">
-  <PageStub title="art" />
+  <div class="px-page pb-space-md pt-space-md">
+    <SectionHeader as="h1" no={sections.art.no} title={sections.art.label} />
+  </div>
+  {works.length > 0 ? <WorksIndex works={works} defaultView="list" /> : <EmptyState />}
 </BaseLayout>

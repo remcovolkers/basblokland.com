@@ -1,0 +1,27 @@
+---
+// Detail-page image: shown uncropped at its natural ratio, with a numbered mono caption.
+import type { ImageRef } from '../lib/types';
+import Img from './Img.astro';
+
+interface Props {
+  image: ImageRef;
+  /** 1-based figure number. */
+  figure: number;
+  eager?: boolean;
+}
+const { image, figure, eager = false } = Astro.props;
+const label = String(figure).padStart(2, '0');
+---
+
+<figure class="flex flex-col bg-surface">
+  <Img
+    image={image}
+    class="h-auto w-full"
+    loading={eager ? 'eager' : 'lazy'}
+    fetchpriority={eager ? 'high' : undefined}
+  />
+  <figcaption class="flex items-baseline gap-space-md p-space-sm font-meta-mono text-meta-mono uppercase">
+    <span class="shrink-0 text-on-surface">[FIG. {label}]</span>
+    {image.caption && <span class="text-outline">{image.caption}</span>}
+  </figcaption>
+</figure>

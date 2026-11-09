@@ -1,0 +1,26 @@
+---
+interface Props {
+  /** Section number, e.g. "01". */
+  no: string;
+  title: string;
+  /** Number of entries, shown as a counter. Omit to hide. */
+  count?: number;
+  /** Heading level. Home sections are h2; an index page's own title is h1. */
+  as?: 'h1' | 'h2';
+}
+
+const { no, title, count, as: Tag = 'h2' } = Astro.props;
+---
+
+<div class="flex items-baseline justify-between gap-space-md">
+  <Tag class="font-headline-lg-mobile text-headline-lg-mobile lowercase text-primary md:text-headline-lg">
+    {no} / {title}
+  </Tag>
+  {
+    count !== undefined && (
+      <span class="font-meta-mono text-meta-mono uppercase text-outline">
+        {count} {count === 1 ? 'entry' : 'entries'}
+      </span>
+    )
+  }
+</div>

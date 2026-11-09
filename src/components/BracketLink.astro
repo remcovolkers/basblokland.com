@@ -1,0 +1,20 @@
+---
+// Bracketed mono link: [ VIEW ALL ART → ]. No fill, no icon; accent only on hover.
+interface Props {
+  href: string;
+  /** Show the trailing arrow (default). Disable for in-page or external-looking links. */
+  arrow?: boolean;
+  class?: string;
+}
+const { href, arrow = true, class: className = '' } = Astro.props;
+---
+
+<a
+  href={href}
+  class:list={[
+    'inline-flex min-h-11 min-w-11 items-center font-meta-mono text-meta-mono uppercase text-primary hover:text-secondary',
+    className,
+  ]}
+>
+  [&nbsp;<slot />{arrow && <>&nbsp;→</>}&nbsp;]
+</a>

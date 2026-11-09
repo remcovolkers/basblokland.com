@@ -1,8 +1,44 @@
 ---
-import PageStub from '../components/PageStub.astro';
+import EmptyState from '../components/EmptyState.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { getSiteSettings } from '../lib/content';
+
+// No contact form: the site is static with no backend, so contact is plain links.
+const { email, instagram, isPlaceholder } = getSiteSettings();
+const placeholder = isPlaceholder ? '' : undefined;
+const linkClass = 'inline-flex min-h-11 items-center text-on-surface hover:text-secondary';
 ---
 
 <BaseLayout title="contact">
-  <PageStub title="contact" />
+  <div class="px-page pb-space-md pt-space-md">
+    <h1 class="font-headline-xl-mobile text-headline-xl-mobile lowercase text-primary md:text-headline-xl">contact</h1>
+  </div>
+  {
+    email || instagram ? (
+      <dl class="flex flex-col px-page pb-space-xl font-meta-mono text-meta-mono uppercase md:max-w-xl">
+        {email && (
+          <div class="flex flex-col gap-space-xs border-t border-outline-variant py-space-sm" data-placeholder={placeholder}>
+            <dt class="text-outline">e-mail</dt>
+            <dd>
+              <a class={linkClass} href={`mailto:${email}`}>
+                {email}
+              </a>
+            </dd>
+          </div>
+        )}
+        {instagram && (
+          <div class="flex flex-col gap-space-xs border-t border-outline-variant py-space-sm" data-placeholder={placeholder}>
+            <dt class="text-outline">instagram</dt>
+            <dd>
+              <a class={linkClass} href={`https://instagram.com/${instagram}`} rel="noopener" target="_blank">
+                @{instagram}
+              </a>
+            </dd>
+          </div>
+        )}
+      </dl>
+    ) : (
+      <EmptyState />
+    )
+  }
 </BaseLayout>

@@ -1,0 +1,44 @@
+---
+/**
+ * Uploaded file  -> native <audio controls> (keyboard and screen-reader accessible, no script).
+ * Embed (Bandcamp / SoundCloud) -> NOT loaded with the page. The player sits inside <details>,
+ * so no third party is contacted until the visitor opens it, plus a plain link as fallback.
+ */
+import type { AudioRef } from '../lib/types';
+
+interface Props {
+  audio: AudioRef;
+}
+const { audio } = Astro.props;
+const title = audio.title ?? 'audio';
+---
+
+<figure class="flex flex-col gap-space-sm bg-surface-container p-space-md">
+  <figcaption class="font-meta-mono text-meta-mono uppercase text-outline">[ audio ] {title}</figcaption>
+  {
+    audio.source === 'file' ? (
+      <audio controls preload="none" src={audio.url} class="w-full" />
+    ) : (
+      <details class="group">
+        <summary class="inline-flex min-h-11 cursor-pointer list-none items-center font-meta-mono text-meta-mono uppercase text-primary hover:text-secondary [&::-webkit-details-marker]:hidden">
+          [&nbsp;load player&nbsp;]
+        </summary>
+        <iframe
+          src={audio.url}
+          title={title}
+          loading="lazy"
+          class="mt-space-sm h-32 w-full border-0"
+          allow="autoplay"
+        />
+        <a
+          class="mt-space-xs inline-flex min-h-11 items-center font-meta-mono text-meta-mono uppercase text-primary hover:text-secondary"
+          href={audio.url}
+          rel="noopener"
+          target="_blank"
+        >
+          [&nbsp;open in new tab&nbsp;→&nbsp;]
+        </a>
+      </details>
+    )
+  }
+</figure>

@@ -1,0 +1,15 @@
+---
+import type { GetStaticPaths } from 'astro';
+import WorkDetail from '../../components/WorkDetail.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getWorks } from '../../lib/content';
+
+export const getStaticPaths = (() =>
+  getWorks('art').map((work) => ({ params: { slug: work.slug }, props: { work } }))) satisfies GetStaticPaths;
+
+const { work } = Astro.props;
+---
+
+<BaseLayout title={work.title} {...work.shortText ? { description: work.shortText } : {}}>
+  <WorkDetail work={work} />
+</BaseLayout>

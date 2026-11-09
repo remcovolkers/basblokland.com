@@ -1,0 +1,164 @@
+---
+/**
+ * Index of works with a List / Grid / Gallery toggle.
+ *
+ * Progressive enhancement: the toggle is a radio group and the CSS (:has) shows the matching
+ * panel, so it works with JavaScript off. The small script below only keeps the choice in the URL
+ * hash, so "back" from a detail page returns to the same view.
+ *
+ * List and Grid are from the Stitch design. The Gallery view is not designed in Stitch: this is a
+ * PROPOSAL (one large image at a time, uncropped, horizontal scroll-snap). The thumbnail column in
+ * the list at md+ is also a proposal (desktop adaptation).
+ */
+import { workIndex } from '../lib/content';
+import { jewelryStatusLabel } from '../lib/labels';
+import { url } from '../lib/url';
+import type { Work } from '../lib/types';
+import Img from './Img.astro';
+
+type View = 'list' | 'grid' | 'gallery';
+interface Props {
+  works: Work[];
+  defaultView?: View;
+}
+const { works, defaultView = 'list' } = Astro.props;
+const views: View[] = ['list', 'grid', 'gallery'];
+const href = (w: Work) => url(`${w.section}/${w.slug}`);
+const isJewelry = works.some((w) => w.section === 'jewelry');
+---
+
+<div class="view-root" data-view-root>
+  <fieldset class="flex min-w-0 flex-wrap items-center justify-between gap-x-space-md border-y border-outline-variant px-page py-space-xs">
+    <legend class="sr-only">View</legend>
+    <span class="font-meta-mono text-meta-mono uppercase text-on-surface-variant">
+      {works.length} {works.length === 1 ? 'entry' : 'entries'}
+    </span>
+    <div class="flex flex-wrap items-center justify-end gap-space-sm font-meta-mono text-meta-mono uppercase">
+      {
+        views.map((view) => (
+          <label class="view-option inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center px-space-xs text-on-surface-variant hover:text-primary">
+            <input class="sr-only" type="radio" name="view" value={view} checked={view === defaultView} />
+            <span>[{view}]</span>
+          </label>
+        ))
+      }
+    </div>
+  </fieldset>
+
+  <!-- LIST -->
+  <ul data-view-panel="list" class="flex flex-col px-page pb-space-xl pt-space-sm">
+    <li aria-hidden="true" class="grid grid-cols-12 gap-x-space-sm px-space-xs py-space-xs font-meta-mono text-meta-mono uppercase text-outline">
+      <span class="col-span-2">ref</span>
+      <span class="col-span-7 md:col-span-6">title / medium</span>
+      <span class="col-span-3 text-right md:col-span-4">
+        year<span class="hidden md:inline"> / {isJewelry ? 'status' : 'size'}</span>
+      </span>
+    </li>
+    {
+      works.map((work) => (
+        <li data-placeholder={work.isPlaceholder ? '' : undefined}>
+          <a
+            href={href(work)}
+            class="group grid grid-cols-12 items-center gap-x-space-sm px-space-xs py-space-sm hover:bg-primary hover:text-on-primary focus-visible:bg-primary focus-visible:text-on-primary"
+          >
+            <span class="col-span-2 font-meta-mono text-meta-mono group-hover:text-secondary-fixed-dim">
+              {workIndex(work)}
+            </span>
+            <span class="col-span-7 flex flex-col md:col-span-6">
+              <span class="font-headline-md text-body-lg lowercase">{work.title}</span>
+              {work.medium && (
+                <span class="truncate font-meta-mono text-meta-mono uppercase text-outline group-hover:text-outline-variant">
+                  {work.medium}
+                </span>
+              )}
+            </span>
+            <span class="col-span-3 flex flex-col items-end gap-space-xs text-right font-meta-mono text-meta-mono uppercase md:col-span-4 md:flex-row md:items-center md:justify-end md:gap-space-md">
+              <span class="hidden h-12 w-12 shrink-0 overflow-hidden bg-surface-container md:block">
+                <Img image={work.cover} class="h-full w-full object-cover" />
+              </span>
+              <span class="flex flex-col items-end">
+                <span>{work.year}</span>
+                {work.status ? (
+                  <span class="text-secondary group-hover:text-secondary-fixed-dim">[{jewelryStatusLabel[work.status]}]</span>
+                ) : (
+                  work.dimensions && (
+                    <span class="hidden text-outline group-hover:text-outline-variant md:inline">{work.dimensions}</span>
+                  )
+                )}
+              </span>
+            </span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+
+  <!-- GRID -->
+  <ul data-view-panel="grid" class="grid grid-cols-2 gap-space-sm px-page pb-space-xl pt-space-sm md:grid-cols-3 md:gap-gutter lg:grid-cols-4">
+    {
+      works.map((work) => (
+        <li data-placeholder={work.isPlaceholder ? '' : undefined}>
+          <a href={href(work)} class="group flex flex-col">
+            <span class="block aspect-square overflow-hidden bg-surface-container">
+              <Img image={work.cover} class="h-full w-full object-cover" />
+            </span>
+            <span class="mt-space-xs flex flex-col gap-space-xs">
+              <span class="font-meta-mono text-meta-mono uppercase text-outline">
+                {workIndex(work)}
+                {work.year ? ` / ${work.year}` : ''}
+              </span>
+              <span class="font-headline-md text-body-sm lowercase text-primary group-hover:text-secondary">{work.title}</span>
+            </span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+
+  <!-- GALLERY (proposal) -->
+  <div
+    data-view-panel="gallery"
+    role="region"
+    aria-label="Gallery, scroll sideways"
+    tabindex="0"
+    class="flex snap-x snap-mandatory gap-space-md overflow-x-auto pb-space-xl pt-space-sm"
+  >
+    {
+      works.map((work, i) => (
+        <figure
+          class="flex w-full shrink-0 snap-center flex-col px-page md:w-4/5 lg:w-3/5"
+          data-placeholder={work.isPlaceholder ? '' : undefined}
+        >
+          <a href={href(work)} class="group flex flex-col">
+            <span class="flex items-center justify-center bg-surface-container">
+              <Img image={work.cover} class="h-auto max-h-[75dvh] w-auto max-w-full object-contain" />
+            </span>
+            <figcaption class="mt-space-sm flex items-baseline justify-between gap-space-md">
+              <span class="font-headline-md text-body-lg lowercase text-primary group-hover:text-secondary">{work.title}</span>
+              <span class="shrink-0 font-meta-mono text-meta-mono uppercase text-outline">
+                {String(i + 1).padStart(2, '0')} / {String(works.length).padStart(2, '0')}
+              </span>
+            </figcaption>
+          </a>
+        </figure>
+      ))
+    }
+  </div>
+</div>
+
+<script>
+  // Optional enhancement: remember the chosen view in the URL hash (#grid), so "back" from a
+  // detail page returns to it. The toggle itself already works without this script.
+  const root = document.querySelector<HTMLElement>('[data-view-root]');
+  if (root) {
+    const radios = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="view"]'));
+    const fromHash = location.hash.slice(1);
+    const match = radios.find((radio) => radio.value === fromHash);
+    if (match) match.checked = true;
+    for (const radio of radios) {
+      radio.addEventListener('change', () => {
+        if (radio.checked) history.replaceState(null, '', `#${radio.value}`);
+      });
+    }
+  }
+</script>

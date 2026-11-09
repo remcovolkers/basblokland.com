@@ -3,7 +3,7 @@
 //     All internal URLs must go through url() in src/lib/url.ts so the base path is respected.
 //  2. No real personal data in files that git tracks. The repo is public.
 import { execFileSync } from 'node:child_process';
-import { readFileSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { extname, join } from 'node:path';
 
 const root = process.cwd();
@@ -19,7 +19,8 @@ const urlAttr = /\b(?:href|src|srcset|action|poster|data-src)\s*=\s*(?:\{\s*)?["
 // match when it follows a CSS property colon, e.g. "background: url(/x.png)".
 const cssUrlInCss = /url\(\s*["']?\/(?!\/)/;
 const cssUrlElsewhere = /[\w-]+\s*:\s*[^;{}]*\burl\(\s*["']?\/(?!\/)/;
-const srcFiles = git('ls-files', '-co', '--exclude-standard', 'src');
+// `git ls-files` still lists tracked files that were deleted in the working tree: skip those.
+const srcFiles = git('ls-files', '-co', '--exclude-standard', 'src').filter((f) => existsSync(join(root, f)));
 for (const file of srcFiles) {
   if (!SRC_EXT.has(extname(file))) continue;
   const cssUrl = extname(file) === '.css' ? cssUrlInCss : cssUrlElsewhere;

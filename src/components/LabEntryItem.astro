@@ -1,0 +1,61 @@
+---
+/**
+ * One lab entry. Entries with a note, images or audio expand with native <details>/<summary>
+ * (no JavaScript, keyboard accessible). Entries without any of those are plain rows.
+ */
+import { formatDate, labTypeLabel } from '../lib/labels';
+import type { LabEntry } from '../lib/types';
+import AudioPlayer from './AudioPlayer.astro';
+import Img from './Img.astro';
+
+interface Props {
+  entry: LabEntry;
+}
+const { entry } = Astro.props;
+const expandable = Boolean(entry.note) || entry.images.length > 0 || Boolean(entry.audio);
+const placeholder = entry.isPlaceholder ? '' : undefined;
+---
+
+{
+  expandable ? (
+    <details class="group bg-surface-container hover:bg-surface-container-highest" data-placeholder={placeholder}>
+      <summary class="flex min-h-11 cursor-pointer list-none flex-col gap-space-xs p-space-sm [&::-webkit-details-marker]:hidden">
+        <span class="flex justify-between gap-space-md font-meta-mono text-meta-mono uppercase">
+          <span class="text-primary">[{labTypeLabel[entry.type]}]</span>
+          <time class="text-outline" datetime={entry.date}>
+            {formatDate(entry.date)}
+          </time>
+        </span>
+        <span class="font-headline-md text-body-lg lowercase text-primary">{entry.title}</span>
+        <span class="flex justify-end font-meta-mono text-meta-mono uppercase text-primary group-hover:text-secondary">
+          <span class="group-open:hidden">[&nbsp;expand&nbsp;]</span>
+          <span class="hidden group-open:inline">[&nbsp;collapse&nbsp;]</span>
+        </span>
+      </summary>
+      <div class="flex flex-col gap-space-md p-space-sm pt-space-xs">
+        {entry.note && <p class="max-w-prose text-body-md text-on-surface-variant">{entry.note}</p>}
+        {entry.images.map((image) => (
+          <figure class="flex flex-col">
+            <Img image={image} class="h-auto w-full" />
+            {image.caption && (
+              <figcaption class="pt-space-xs font-meta-mono text-meta-mono uppercase text-outline">
+                {image.caption}
+              </figcaption>
+            )}
+          </figure>
+        ))}
+        {entry.audio && <AudioPlayer audio={entry.audio} />}
+      </div>
+    </details>
+  ) : (
+    <div class="flex flex-col gap-space-xs bg-surface-container p-space-sm" data-placeholder={placeholder}>
+      <span class="flex justify-between gap-space-md font-meta-mono text-meta-mono uppercase">
+        <span class="text-primary">[{labTypeLabel[entry.type]}]</span>
+        <time class="text-outline" datetime={entry.date}>
+          {formatDate(entry.date)}
+        </time>
+      </span>
+      <span class="font-headline-md text-body-lg lowercase text-primary">{entry.title}</span>
+    </div>
+  )
+}

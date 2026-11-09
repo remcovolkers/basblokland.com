@@ -1,0 +1,21 @@
+---
+// Jewelry availability. The text always carries the meaning; colour is only a reinforcement.
+import { jewelryStatusLabel } from '../lib/labels';
+import type { JewelryStatus } from '../lib/types';
+
+interface Props {
+  status: JewelryStatus;
+  class?: string;
+}
+const { status, class: className = '' } = Astro.props;
+const tone: Record<JewelryStatus, string> = {
+  available: 'text-secondary',
+  'made-to-order': 'text-primary',
+  sold: 'text-outline',
+  archive: 'text-outline',
+};
+---
+
+<span class:list={['font-meta-mono-bold text-meta-mono-bold uppercase', tone[status], className]}>
+  [{jewelryStatusLabel[status]}]
+</span>

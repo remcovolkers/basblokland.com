@@ -1,0 +1,22 @@
+---
+// Label/value pairs (medium, size, year and the optional "details" from the CMS).
+import type { DetailRow } from '../lib/types';
+
+interface Props {
+  rows: DetailRow[];
+}
+const { rows } = Astro.props;
+---
+
+{
+  rows.length > 0 && (
+    <dl class="flex flex-col font-meta-mono text-meta-mono uppercase">
+      {rows.map((row) => (
+        <div class="flex justify-between gap-space-md border-b border-outline-variant py-space-sm first:border-t">
+          <dt class="shrink-0 text-outline">{row.label}</dt>
+          <dd class="text-right text-on-surface">{row.value}</dd>
+        </div>
+      ))}
+    </dl>
+  )
+}
