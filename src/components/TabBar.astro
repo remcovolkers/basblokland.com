@@ -1,0 +1,37 @@
+---
+import { isActive, navItems } from '../lib/site';
+import { url } from '../lib/url';
+
+const pathname = Astro.url.pathname;
+---
+
+<!--
+  Mobile tab bar. Sticky (not fixed) at the end of <body>, so it pins to the bottom of the
+  viewport while scrolling but never covers the footer, and it can wrap at large text sizes.
+-->
+<nav
+  aria-label="Main"
+  class="sticky bottom-0 z-40 border-t border-outline-variant bg-surface-container-high pb-safe md:hidden"
+>
+  <ul class="flex min-h-16 flex-wrap items-center justify-between px-gutter">
+    {
+      navItems.map((item) => {
+        const active = isActive(item, pathname);
+        return (
+          <li>
+            <a
+              href={url(item.href)}
+              aria-current={active ? 'page' : undefined}
+              class:list={[
+                'flex min-h-11 min-w-11 items-center justify-center px-space-xs font-meta-mono text-meta-mono uppercase hover:text-secondary',
+                active ? 'text-secondary underline underline-offset-4' : 'text-on-surface-variant',
+              ]}
+            >
+              {item.label}
+            </a>
+          </li>
+        );
+      })
+    }
+  </ul>
+</nav>

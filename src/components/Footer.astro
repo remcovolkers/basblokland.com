@@ -1,0 +1,23 @@
+---
+import { getSiteSettings } from '../lib/content';
+import { isPrototype, wordmark } from '../lib/site';
+
+const { email, instagram } = getSiteSettings();
+const year = new Date().getFullYear();
+const linkClass = 'inline-flex min-h-11 items-center hover:text-secondary';
+---
+
+<footer class="px-page pb-space-lg pt-space-xl">
+  <div class="flex flex-col gap-space-xs font-meta-mono text-meta-mono uppercase text-on-surface-variant">
+    <a class={linkClass} href={`mailto:${email}`}>{email}</a>
+    {
+      instagram && (
+        <a class={linkClass} href={`https://instagram.com/${instagram}`} rel="noopener" target="_blank">
+          @{instagram}
+        </a>
+      )
+    }
+    <span class="mt-space-xs text-outline">© {year} {wordmark}</span>
+    {isPrototype && <span class="text-outline">prototype / placeholder content</span>}
+  </div>
+</footer>

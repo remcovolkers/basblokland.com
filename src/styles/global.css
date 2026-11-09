@@ -1,0 +1,187 @@
+@import 'tailwindcss';
+
+/* Fonts are self-hosted (@fontsource). Latin subset only. No Google Fonts, no CDN. */
+@font-face {
+  font-family: 'Inter Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Inter Variable';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-italic.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url('../../node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 600;
+  src: url('../../node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-600-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Design tokens. Names follow the Stitch export so its markup ports 1:1.
+   Tailwind's default palette, radius and shadows are cleared on purpose: the design
+   has no rounded corners, shadows or gradients, and only these colours. */
+@theme {
+  --color-*: initial;
+  --color-primary: #000000;
+  --color-on-primary: #ffffff;
+  /* The single accent: hover, active and status only. */
+  --color-secondary: #b02f09;
+  /* Accent tint for use on black (inverted) surfaces. */
+  --color-secondary-fixed-dim: #ffb4a1;
+  --color-surface: #faf9f5;
+  --color-surface-container-low: #f5f4ef;
+  --color-surface-container: #efeeea;
+  --color-surface-container-high: #e9e8e4;
+  --color-surface-container-highest: #e3e2de;
+  --color-surface-variant: #e3e2de; /* alias of surface-container-highest */
+  --color-on-surface: #1b1c1a;
+  --color-on-surface-variant: #45474a;
+  /* Darkened from Stitch's #75777a (3.7:1) so small mono text passes WCAG AA. */
+  --color-outline: #63656a;
+  --color-outline-variant: #c5c6c9;
+
+  --radius-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --font-serif: initial;
+  --font-body-lg: var(--font-sans);
+  --font-body-md: var(--font-sans);
+  --font-headline-md: var(--font-sans);
+  --font-headline-lg: var(--font-sans);
+  --font-headline-lg-mobile: var(--font-sans);
+  --font-headline-xl: var(--font-sans);
+  --font-headline-xl-mobile: var(--font-sans);
+  --font-meta-mono: var(--font-mono);
+  --font-meta-mono-bold: var(--font-mono);
+
+  --text-body-lg: 1.0625rem;
+  --text-body-lg--line-height: 1.6;
+  --text-body-lg--letter-spacing: -0.01em;
+  --text-body-lg--font-weight: 400;
+  --text-body-md: 0.9375rem;
+  --text-body-md--line-height: 1.6;
+  --text-body-md--letter-spacing: 0em;
+  --text-body-md--font-weight: 400;
+  /* Added: replaces Stitch's ad-hoc text-[13px]/[14px]. */
+  --text-body-sm: 0.875rem;
+  --text-body-sm--line-height: 1.5;
+  --text-body-sm--letter-spacing: 0em;
+  --text-body-sm--font-weight: 400;
+  --text-headline-md: 1.75rem;
+  --text-headline-md--line-height: 1.15;
+  --text-headline-md--letter-spacing: -0.02em;
+  --text-headline-md--font-weight: 400;
+  --text-headline-lg-mobile: 2rem;
+  --text-headline-lg-mobile--line-height: 1.1;
+  --text-headline-lg-mobile--letter-spacing: -0.02em;
+  --text-headline-lg-mobile--font-weight: 400;
+  --text-headline-lg: 2.75rem;
+  --text-headline-lg--line-height: 1.05;
+  --text-headline-lg--letter-spacing: -0.03em;
+  --text-headline-lg--font-weight: 400;
+  --text-headline-xl-mobile: 2.5rem;
+  --text-headline-xl-mobile--line-height: 1;
+  --text-headline-xl-mobile--letter-spacing: -0.03em;
+  --text-headline-xl-mobile--font-weight: 400;
+  --text-headline-xl: 4rem;
+  --text-headline-xl--line-height: 0.95;
+  --text-headline-xl--letter-spacing: -0.04em;
+  --text-headline-xl--font-weight: 400;
+  --text-meta-mono: 0.75rem;
+  --text-meta-mono--line-height: 1.4;
+  --text-meta-mono--letter-spacing: 0.12em;
+  --text-meta-mono--font-weight: 400;
+  --text-meta-mono-bold: 0.75rem;
+  --text-meta-mono-bold--line-height: 1.4;
+  --text-meta-mono-bold--letter-spacing: 0.14em;
+  --text-meta-mono-bold--font-weight: 600;
+
+  --spacing-margin: 1.5rem;
+  --spacing-margin-tablet: 3rem;
+  --spacing-margin-desktop: 5rem;
+  --spacing-gutter: 1.5rem;
+  --spacing-gutter-desktop: 3rem;
+  --spacing-space-xs: 0.25rem;
+  --spacing-space-sm: 0.5rem;
+  --spacing-space-md: 1rem;
+  --spacing-space-lg: 2rem;
+  --spacing-space-xl: 4rem;
+}
+
+/* Page side padding: gutter on mobile, wider margins on tablet/desktop. */
+@utility px-page {
+  padding-inline: var(--spacing-gutter);
+  @media (min-width: 48rem) {
+    padding-inline: var(--spacing-margin-tablet);
+  }
+  @media (min-width: 64rem) {
+    padding-inline: var(--spacing-margin-desktop);
+  }
+}
+
+/* Stitch names, kept for 1:1 markup. Only effective on notched devices (viewport-fit=cover). */
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+@layer base {
+  html {
+    background-color: var(--color-surface);
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  body {
+    /* `anywhere` (not `break-word`) also lowers min-content width, so long wide-tracked mono
+       strings such as e-mail addresses wrap instead of causing horizontal scroll at 200% text. */
+    overflow-wrap: anywhere;
+  }
+  /* Visible focus everywhere, in the current text colour so it also works on black panels. */
+  :focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+  }
+  ::selection {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

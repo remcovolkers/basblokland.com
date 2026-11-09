@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Temporary placeholder. Replaced by the approved logo mark. -->
+  <style>
+    rect { fill: #000000; }
+    @media (prefers-color-scheme: dark) { rect { fill: #faf9f5; } }
+  </style>
+  <rect width="32" height="32" />
+</svg>

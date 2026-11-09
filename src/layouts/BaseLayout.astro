@@ -1,0 +1,69 @@
+---
+import Footer from '../components/Footer.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import SkipLink from '../components/SkipLink.astro';
+import TabBar from '../components/TabBar.astro';
+import { isPrototype, siteDescription, wordmark } from '../lib/site';
+import { absoluteUrl, url } from '../lib/url';
+import interUrl from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
+import monoUrl from '@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff2?url';
+import '../styles/global.css';
+
+interface Props {
+  /** Page title. Omit on the home page. */
+  title?: string;
+  description?: string;
+  /** Path (relative to base) of the Open Graph image. */
+  ogImage?: string;
+  /** Force noindex (e.g. the 404 page), independent of prototype mode. */
+  noindex?: boolean;
+}
+
+const { title, description = siteDescription, ogImage = '/og.png', noindex = false } = Astro.props;
+
+const fullTitle = title ? `${title} — ${wordmark}` : wordmark;
+// Pages that are noindex (e.g. 404) are not real URLs, so they get no canonical / og:url.
+const canonical = noindex ? undefined : new URL(Astro.url.pathname, Astro.site).href;
+const ogImageUrl = absoluteUrl(ogImage, Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <!-- Zoom must stay enabled: no maximum-scale, no user-scalable=no. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#e9e8e4" />
+
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    {canonical && <link rel="canonical" href={canonical} />}
+    {(isPrototype || noindex) && <meta name="robots" content="noindex, nofollow" />}
+
+    <link rel="icon" href={url('/favicon.svg')} type="image/svg+xml" />
+
+    <meta property="og:site_name" content={wordmark} />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    {canonical && <meta property="og:url" content={canonical} />}
+    <meta property="og:image" content={ogImageUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="preload" href={interUrl} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={monoUrl} as="font" type="font/woff2" crossorigin />
+  </head>
+  <body
+    class="flex min-h-dvh flex-col bg-surface-container-high font-body-md text-body-md text-on-surface"
+  >
+    <SkipLink />
+    <SiteHeader />
+    <main id="main" tabindex="-1" class="mx-auto w-full max-w-[90rem] flex-1 focus:outline-none">
+      <slot />
+    </main>
+    <Footer />
+    <TabBar />
+  </body>
+</html>

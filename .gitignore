@@ -1,0 +1,25 @@
+# build output
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# secrets: never commit. Use .env.example as the template.
+.env
+.env.*
+!.env.example
+
+# Stitch references contain invented/placeholder personal data. Keep local only.
+design/stitch/
+
+# editor / OS
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+
+# sanity studio (added with the studio step)
+studio/node_modules/
+studio/dist/
+studio/.sanity/
