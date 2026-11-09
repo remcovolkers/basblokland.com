@@ -1,8 +1,9 @@
 /**
  * Studio theme built from the website's design tokens (src/styles/global.css), so the Studio feels
  * like the site: warm paper greys, ink-black primary, one rust accent, Inter + JetBrains Mono, no
- * rounded corners and no shadows. Light AND dark come from the same palette: Sanity UI maps tints
- * 50..950 onto both colour schemes.
+ * rounded corners. Light AND dark come from the same palette: Sanity UI maps tints 50..950 onto both
+ * colour schemes. Dialogs, popovers and menus get their separation from Sanity's shadows plus
+ * studio/layers.css (hard edge, lighter surface in dark mode, firmer scrim).
  *
  * KEEP IN SYNC with the site tokens by hand: the Studio is a separate package and cannot import CSS.
  */
@@ -99,9 +100,10 @@ export const theme = buildTheme({
     label: { ...base.label, family: MONO, weights: { regular: 400, medium: 400, semibold: 600, bold: 600 } },
     code: { ...base.code, family: MONO, weights: { regular: 400, medium: 400, semibold: 600, bold: 600 } },
   },
-  // No rounded corners, no shadows (site rules).
+  // No rounded corners (site rule). Shadows are Sanity's own: layers (dialogs, popovers, menus) need
+  // them to separate from the page behind them; with a flat theme a dialog dissolved into the page.
   radius: [0, 0, 0, 0, 0, 0, 0],
-  shadow: [null, null, null, null, null, null],
+  shadow: defaults.shadow,
   palette: {
     black: '#000000',
     // `white` is the light scheme's base surface and the text on solid buttons: the site's paper colour.

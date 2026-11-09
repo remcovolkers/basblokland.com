@@ -27,8 +27,12 @@ Bandcamp/SoundCloud link. The schema mirrors `src/lib/types.ts`, so Step 5 swaps
 without changing pages.
 
 Look and feel: [studio/theme.ts](../studio/theme.ts) builds a theme from the site's tokens (warm paper
-greys, ink primary, rust `#b02f09` for errors, Inter + JetBrains Mono, no radius or shadows), light and
-dark. The navbar shows the small logo mark (the same SVG as the site header) next to the lowercase
+greys, ink primary, rust `#b02f09` for errors, Inter + JetBrains Mono, no radius), light and dark.
+[studio/layers.css](../studio/layers.css) makes dialogs, popovers and menus read as "above" the page: a
+hard edge, an offset shadow, a lighter surface in dark mode and a firmer scrim. (The first flat theme
+removed all shadows and a dialog dissolved into the form behind it: found from a screenshot, reproduced
+in the theme preview with `&dialog=1`.) It styles Sanity UI's `data-ui` attributes, so a Sanity
+upgrade that renames them only makes layers less distinct; re-check with `npm run theme-preview`. The navbar shows the small logo mark (the same SVG as the site header) next to the lowercase
 wordmark. **Keep `theme.ts` in sync with `src/styles/global.css` by hand.**
 
 ## One-time setup (you run these: they need your Sanity account)

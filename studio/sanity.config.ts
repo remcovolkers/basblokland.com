@@ -1,6 +1,7 @@
 import '@fontsource-variable/inter/wght.css';
 import '@fontsource/jetbrains-mono/400.css';
 import '@fontsource/jetbrains-mono/600.css';
+import './layers.css';
 import { nlNLLocale } from '@sanity/locale-nl-nl';
 import { defineConfig } from 'sanity';
 import { structureTool } from 'sanity/structure';

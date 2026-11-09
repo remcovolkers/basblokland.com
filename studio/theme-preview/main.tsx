@@ -6,10 +6,12 @@
  * old padding/space props; only colour, fonts, tones and buttons matter here.)
  */
 import '@sanity/ui/styles.css';
+import '../layers.css';
 import '@fontsource-variable/inter/wght.css';
 import '@fontsource/jetbrains-mono/400.css';
 import '@fontsource/jetbrains-mono/600.css';
-import { Badge, Button, Card, Checkbox, Heading, Label, Text, TextInput, ThemeProvider } from '@sanity/ui';
+import { Badge, Button, Card, Checkbox, Dialog, Heading, Label, Text, TextInput, ThemeProvider } from '@sanity/ui';
+import { Popover } from '@sanity/ui/popover';
 import { buildTheme } from '@sanity/ui/theme';
 import type { CSSProperties } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -86,4 +88,45 @@ function Sample() {
   );
 }
 
-createRoot(document.getElementById('root')!).render(<Sample />);
+// ?dialog=1: a dialog open on top of a form, to judge how a modal separates from the page behind it.
+function DialogScene() {
+  return (
+    <ThemeProvider theme={theme} scheme={scheme}>
+      <Card style={{ minHeight: '100vh', boxSizing: 'border-box', padding: 24 }}>
+        <div style={{ ...col, gap: 16, maxWidth: 640, margin: '0 auto' }}>
+          <Heading>Dikke bling broer</Heading>
+          <Label>Beschrijving van de foto (verplicht)</Label>
+          <TextInput value="dikke ring broer" readOnly />
+          <Label>Bijschrift (optioneel)</Label>
+          <TextInput value="" placeholder="Bijvoorbeeld: Detail van de zijkant" readOnly />
+          <Label>Extra gegevens</Label>
+          <Popover open placement="right" content={<Card padding={3} style={{ width: 220 }}><Label>Naam</Label><TextInput value="Oplage" readOnly /></Card>}>
+            <div><Button text="Voeg item toe" mode="ghost" /></div>
+          </Popover>
+          <Label>Meer foto's</Label>
+          <Card border style={pad}>
+            <Text>#1 leip!</Text>
+          </Card>
+          <Card border style={pad}>
+            <Text>#2 Zonder titel</Text>
+          </Card>
+        </div>
+      </Card>
+      {params.get('dialog') === '1' && (
+      <Dialog id="demo" header="Meer foto's / #3 Zonder titel" onClose={() => {}} width={1}>
+        <div style={{ ...col, gap: 12, padding: 16 }}>
+          <Card border style={pad}>
+            <Text>Sleep of plak afbeelding hier</Text>
+          </Card>
+          <Label>Beschrijving van de foto (verplicht)</Label>
+          <TextInput placeholder="Bijvoorbeeld: Zwart metalen beeld op een betonnen sokkel" readOnly />
+          <Label>Bijschrift (optioneel)</Label>
+          <TextInput placeholder="Bijvoorbeeld: Detail van de zijkant" readOnly />
+        </div>
+      </Dialog>
+      )}
+    </ThemeProvider>
+  );
+}
+
+createRoot(document.getElementById('root')!).render(params.get('dialog') ? <DialogScene /> : <Sample />);

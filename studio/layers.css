@@ -1,0 +1,43 @@
+/*
+ * Layers: dialogs, popovers and menus must read as "above" the page behind them.
+ *
+ * Why: the Studio theme is flat (no radius), and a layer was painted in the SAME colour as the page
+ * behind it, so a dialog dissolved into the form (the form text showed through its top edge). Sanity's
+ * own theme separates layers with a lighter card, a ring and a soft shadow; the flat theme lost all
+ * three. This restores the separation in the site's own language: a hard edge, an offset shadow, a
+ * lighter surface in dark mode, and a firmer scrim.
+ *
+ * Hooks are Sanity UI's `data-ui` / `data-scheme` attributes (Dialog = the scrim, DialogCard = the
+ * panel). If a Sanity upgrade renames them, layers fall back to the theme's plain look: harmless, only
+ * less distinct. studio/theme-preview shows dialogs in both schemes (`&dialog=1`).
+ */
+
+/* The scrim: dim the page enough that the layer is clearly the thing to look at. */
+[data-ui='Dialog'] {
+  background-color: rgb(0 0 0 / 0.62);
+}
+
+/* The panel itself. Selectors out-rank Sanity UI's single-class styles, so no !important. */
+[data-ui='DialogCard'] > [data-ui='Card'][data-scheme='light'] {
+  background-color: #ffffff;
+  border: 2px solid #1b1c1a;
+  box-shadow: 8px 8px 0 rgb(0 0 0 / 0.28);
+}
+[data-ui='DialogCard'] > [data-ui='Card'][data-scheme='dark'] {
+  background-color: #2a2b29; /* lighter than the page (#1b1c1a): a raised surface */
+  border: 2px solid #8f9194;
+  box-shadow: 8px 8px 0 rgb(0 0 0 / 0.7);
+}
+
+/* Popovers and menus (e.g. the small panel for "Extra gegevens"): same idea, a little lighter. Only the
+   outer panel (Popover > wrapper > Flex > Card), never the cards inside its content. */
+[data-ui='Popover'] > [data-ui='Popover__wrapper'] > [data-ui='Flex'] > [data-ui='Card'][data-scheme='light'] {
+  background-color: #ffffff;
+  border: 1px solid #1b1c1a;
+  box-shadow: 4px 4px 0 rgb(0 0 0 / 0.2);
+}
+[data-ui='Popover'] > [data-ui='Popover__wrapper'] > [data-ui='Flex'] > [data-ui='Card'][data-scheme='dark'] {
+  background-color: #2a2b29;
+  border: 1px solid #8f9194;
+  box-shadow: 4px 4px 0 rgb(0 0 0 / 0.6);
+}
