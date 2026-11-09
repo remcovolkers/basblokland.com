@@ -9,6 +9,7 @@ import { sections } from '../lib/site';
 import type { DetailRow, Work } from '../lib/types';
 import AudioPlayer from './AudioPlayer.astro';
 import EnquireLink from './EnquireLink.astro';
+import Lightbox from './Lightbox.astro';
 import MediaPlate from './MediaPlate.astro';
 import SpecList from './SpecList.astro';
 import StatusTag from './StatusTag.astro';
@@ -53,4 +54,5 @@ const canEnquire = work.section === 'art' || work.status === 'available' || work
       {plates.map((image, i) => <MediaPlate image={image} figure={i + 1} eager={i === 0} />)}
     </div>
   </div>
+  <Lightbox />
 </article>

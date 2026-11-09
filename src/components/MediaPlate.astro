@@ -1,5 +1,7 @@
 ---
 // Detail-page image: shown uncropped at its natural ratio, with a numbered mono caption.
+// The image is a plain link to the larger file (works without JavaScript); with JavaScript,
+// Lightbox.astro turns a click on the figure into a full-screen viewer.
 import type { ImageRef } from '../lib/types';
 import Img from './Img.astro';
 
@@ -13,16 +15,22 @@ const { image, figure, eager = false } = Astro.props;
 const label = String(figure).padStart(2, '0');
 ---
 
-<figure class="flex flex-col bg-surface">
-  <Img
-    image={image}
-    class="h-auto w-full"
-    sizes="(min-width: 64rem) 66vw, (min-width: 48rem) 58vw, 100vw"
-    loading={eager ? 'eager' : 'lazy'}
-    fetchpriority={eager ? 'high' : undefined}
-  />
+<figure class="flex flex-col bg-surface" data-lightbox-item data-figure={label} data-caption={image.caption}>
+  <a href={image.src} class="flex cursor-zoom-in flex-col" data-lightbox-link>
+    <Img
+      image={image}
+      class="h-auto w-full"
+      sizes="(min-width: 64rem) 66vw, (min-width: 48rem) 58vw, 100vw"
+      loading={eager ? 'eager' : 'lazy'}
+      fetchpriority={eager ? 'high' : undefined}
+    />
+    <span class="sr-only">(view larger)</span>
+  </a>
   <figcaption class="flex items-baseline gap-space-md p-space-sm font-meta-mono text-meta-mono uppercase">
     <span class="shrink-0 text-on-surface">[FIG. {label}]</span>
-    {image.caption && <span class="text-outline">{image.caption}</span>}
+    {image.caption && <span class="min-w-0 text-outline">{image.caption}</span>}
+    <!-- A visible cue that the picture opens larger (touch has no zoom-in cursor). Decorative: the
+         link around the image already says "view larger"; the script makes a click here open it too. -->
+    <span aria-hidden="true" class="ml-auto shrink-0 text-outline">[&nbsp;enlarge&nbsp;]</span>
   </figcaption>
 </figure>

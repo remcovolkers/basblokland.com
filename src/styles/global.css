@@ -268,6 +268,11 @@
   color: var(--color-primary);
 }
 
+/* While the photo viewer (a modal <dialog>) is open the page behind it must not scroll. */
+html:has(dialog[open]) {
+  overflow: hidden;
+}
+
 /* Audio player (see AudioPlayer.astro). The scrubber is a native range input so touch, mouse and keyboard
    work, but it is made invisible except for a thin square bar: the hairline and the played part are drawn
    by elements behind it. Unlayered, like the rules above, so utilities cannot override it. */

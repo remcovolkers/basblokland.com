@@ -20,7 +20,7 @@ const buttonClass =
 ---
 
 <figure class="flex flex-col gap-space-sm bg-surface-container p-space-md">
-  <figcaption class="font-meta-mono text-meta-mono uppercase text-outline">[ audio ] {title}</figcaption>
+  <figcaption class="font-meta-mono text-meta-mono uppercase text-outline">[ audio ]{audio.title ? ` ${audio.title}` : ''}</figcaption>
   {
     audio.source === 'file' ? (
       <div data-audio class="flex flex-col">

@@ -1,0 +1,194 @@
+---
+/**
+ * Full-screen photo viewer for a work's pictures. Needs the figures rendered by MediaPlate
+ * ([data-lightbox-item]); without JavaScript those are plain links to the larger image, so nothing
+ * depends on this.
+ *
+ * A native <dialog> opened with showModal(): the rest of the page is inert, Tab stays inside, Escape
+ * closes it and focus returns to the picture that opened it. The script adds: the picture at
+ * full size (the page's own <picture> is cloned, so WebP/JPEG and srcset still apply), prev/next
+ * (buttons, arrow keys, swipe), a screen-reader announcement, and the phone's back button closing the
+ * viewer instead of leaving the page.
+ */
+const buttonClass =
+  'inline-flex min-h-11 items-center hover:text-secondary-fixed-dim aria-disabled:cursor-default aria-disabled:text-outline aria-disabled:hover:text-outline';
+---
+
+<!-- `open:flex`, not `flex`: a plain display utility would also show the closed dialog. -->
+<dialog
+  data-lightbox
+  aria-label="Image viewer"
+  class="m-0 h-dvh max-h-none w-dvw max-w-none flex-col bg-primary p-0 text-on-primary backdrop:bg-primary open:flex"
+>
+  <div class="flex shrink-0 items-center justify-between px-page pt-safe font-meta-mono text-meta-mono uppercase">
+    <!-- Visible position. The announcement for screen readers is the separate live region below. -->
+    <p aria-hidden="true" data-lightbox-count>[ 01 / 01 ]</p>
+    <button type="button" data-lightbox-close class={buttonClass}>
+      <span aria-hidden="true">[&nbsp;</span>close<span aria-hidden="true">&nbsp;]</span>
+    </button>
+  </div>
+
+  <!-- The picture is placed here by the script. Empty space around it closes the viewer.
+       touch-action keeps pinch-zoom (zoom must never be disabled) but lets horizontal swipes through. -->
+  <div data-lightbox-stage class="relative min-h-0 flex-1 [touch-action:pan-y_pinch-zoom]"></div>
+
+  <div class="shrink-0 px-page pb-safe font-meta-mono text-meta-mono uppercase">
+    <p data-lightbox-caption class="min-h-6 py-space-xs text-outline-variant"></p>
+    <div class="flex items-center justify-between">
+      <button type="button" data-lightbox-prev class={buttonClass}>
+        <span aria-hidden="true">[&nbsp;←&nbsp;</span>prev<span aria-hidden="true">&nbsp;]</span>
+      </button>
+      <button type="button" data-lightbox-next class={buttonClass}>
+        <span aria-hidden="true">[&nbsp;</span>next<span aria-hidden="true">&nbsp;→&nbsp;]</span>
+      </button>
+    </div>
+  </div>
+
+  <p data-lightbox-live aria-live="polite" class="sr-only"></p>
+</dialog>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>('[data-lightbox]');
+  const items = Array.from(document.querySelectorAll<HTMLElement>('[data-lightbox-item]'));
+
+  if (dialog && items.length > 0) {
+    const stage = dialog.querySelector<HTMLElement>('[data-lightbox-stage]');
+    const count = dialog.querySelector<HTMLElement>('[data-lightbox-count]');
+    const caption = dialog.querySelector<HTMLElement>('[data-lightbox-caption]');
+    const live = dialog.querySelector<HTMLElement>('[data-lightbox-live]');
+    const prev = dialog.querySelector<HTMLElement>('[data-lightbox-prev]');
+    const next = dialog.querySelector<HTMLElement>('[data-lightbox-next]');
+    const closeButton = dialog.querySelector<HTMLElement>('[data-lightbox-close]');
+
+    if (stage && count && caption && live && prev && next && closeButton) {
+      const last = items.length - 1;
+      const pad = (n: number) => String(n).padStart(2, '0');
+      let current = 0;
+      let pushed = false; // did opening add a history entry (so the back button closes the viewer)?
+      // Kept referenced so the browser does not cancel the pictures it is loading ahead of time.
+      const preloaded: Element[] = [];
+
+      /** A full-size copy of the picture on the page: same <picture> sources, shown to fit the screen. */
+      function fullSize(item: HTMLElement): Element | null {
+        const source = item.querySelector('picture') ?? item.querySelector('img');
+        if (!source) return null;
+        const copy = source.cloneNode(true) as Element;
+        for (const el of copy.matches('img') ? [copy] : Array.from(copy.querySelectorAll('source, img'))) {
+          // The page asked for the width it displays them at; here the picture fills the screen. On a
+          // phone the page picture is already that wide, so ask for 1.5x: pinch-zooming stays sharp.
+          if (el.hasAttribute('sizes')) el.setAttribute('sizes', '(max-width: 48rem) 150vw, 100vw');
+        }
+        const img = copy.matches('img') ? copy : copy.querySelector('img');
+        if (img) {
+          img.setAttribute('loading', 'eager');
+          img.removeAttribute('fetchpriority');
+          // Colour: the viewer shows the work itself, not the grayscale index treatment.
+          img.className = 'absolute inset-0 m-auto h-auto max-h-full w-auto max-w-full object-contain';
+        }
+        return copy;
+      }
+
+      function show(index: number): void {
+        if (!stage || !count || !caption || !live || !prev || !next) return;
+        current = Math.min(last, Math.max(0, index));
+        const item = items[current];
+        if (!item) return;
+        const picture = fullSize(item);
+        stage.replaceChildren(...(picture ? [picture] : []));
+
+        const alt = item.querySelector('img')?.getAttribute('alt') ?? '';
+        const figure = item.dataset.figure ?? pad(current + 1);
+        const text = item.dataset.caption;
+        count.textContent = `[ ${pad(current + 1)} / ${pad(items.length)} ]`;
+        caption.textContent = text ? `[FIG. ${figure}] ${text}` : `[FIG. ${figure}]`;
+        live.textContent = `Image ${current + 1} of ${items.length}${alt ? `: ${alt}` : ''}`;
+        prev.setAttribute('aria-disabled', String(current === 0));
+        next.setAttribute('aria-disabled', String(current === last));
+
+        // Fetch the neighbours now so paging does not wait for the network.
+        preloaded.length = 0;
+        for (const i of [current - 1, current + 1]) {
+          const neighbour = items[i];
+          const copy = neighbour ? fullSize(neighbour) : null;
+          if (copy) preloaded.push(copy);
+        }
+      }
+
+      function open(index: number): void {
+        if (!dialog || dialog.open) return;
+        dialog.showModal();
+        show(index);
+        history.pushState({ lightbox: true }, '');
+        pushed = true;
+      }
+
+      function step(delta: number): void {
+        show(current + delta);
+      }
+
+      // Open on a click anywhere on a figure (picture or its [ enlarge ] cue). Ctrl/Cmd/Shift-click
+      // and middle click keep their usual meaning on the link: open the image file itself.
+      for (const item of items) {
+        item.addEventListener('click', (event) => {
+          if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+          event.preventDefault();
+          open(items.indexOf(item));
+        });
+      }
+
+      prev.addEventListener('click', () => {
+        if (prev.getAttribute('aria-disabled') !== 'true') step(-1);
+      });
+      next.addEventListener('click', () => {
+        if (next.getAttribute('aria-disabled') !== 'true') step(1);
+      });
+      closeButton.addEventListener('click', () => dialog.close());
+
+      dialog.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowLeft') step(-1);
+        else if (event.key === 'ArrowRight') step(1);
+        else if (event.key === 'Home') show(0);
+        else if (event.key === 'End') show(last);
+        else return;
+        event.preventDefault();
+      });
+
+      // Clicking the empty space around the picture closes the viewer.
+      stage.addEventListener('click', (event) => {
+        if (event.target === stage) dialog.close();
+      });
+
+      // Swipe sideways to page. Mostly-horizontal and long enough, so scrolling or tapping never pages.
+      let startX = 0;
+      let startY = 0;
+      stage.addEventListener('pointerdown', (event) => {
+        if (event.pointerType === 'mouse') return;
+        startX = event.clientX;
+        startY = event.clientY;
+      });
+      stage.addEventListener('pointerup', (event) => {
+        if (event.pointerType === 'mouse') return;
+        const dx = event.clientX - startX;
+        const dy = event.clientY - startY;
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) step(dx < 0 ? 1 : -1);
+      });
+
+      // The back button closes the viewer (and stays on the page) instead of leaving it.
+      window.addEventListener('popstate', () => {
+        if (dialog.open) {
+          pushed = false;
+          dialog.close();
+        }
+      });
+      // Fires for every way of closing: the button, Escape, the empty space, the back button.
+      dialog.addEventListener('close', () => {
+        stage.replaceChildren();
+        preloaded.length = 0;
+        if (pushed) {
+          pushed = false;
+          history.back();
+        }
+      });
+    }
+  }
+</script>
