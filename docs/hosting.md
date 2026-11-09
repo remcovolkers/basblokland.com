@@ -25,7 +25,8 @@ I did not change any repository settings and did not push anything.
 | --- | --- |
 | `push` to `main` | normal deploys |
 | `workflow_dispatch` | the "Run workflow" button |
-| `repository_dispatch` type `sanity-publish` | later: the Sanity webhook rebuilds on publish |
+| `repository_dispatch` type `sanity-publish` | the Sanity publish webhook rebuilds on publish (setup: [go-live.md](go-live.md)) |
+| `schedule` (hourly) | safety net if the webhook or its token fails; only runs once `SANITY_PROJECT_ID` is set; a `keepalive` job keeps GitHub from disabling it after 60 quiet days |
 
 The build runs `npm run check`, `npm run verify:src`, `npm run build`, `npm run verify`. If any of
 them fails, nothing is deployed.
