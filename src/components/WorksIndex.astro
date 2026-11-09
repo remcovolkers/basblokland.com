@@ -118,16 +118,18 @@ const carouselButton =
     }
   </ul>
 
-  <!-- GALLERY: a carousel (proposal; Stitch has no gallery design). Without JavaScript it is a
-       natively scrollable snap strip. The script below adds prev/next, a live counter and arrow
-       keys. No autoplay, ever. -->
+  <!-- GALLERY: a centred carousel (proposal; Stitch has no gallery design). The focused slide sits
+       in the middle at full size, its neighbours are smaller. Without JavaScript it is a natively
+       scrollable snap strip (scrollbar visible). The script below adds prev/next, a live counter,
+       arrow keys, focus handling and the scaling. No autoplay, ever.
+       `@container` lets slide widths and the centring padding use container units (cqw). -->
   <div
     data-view-panel="gallery"
     data-carousel
     role="group"
     aria-roledescription="carousel"
     aria-label="Gallery"
-    class="pb-space-xl pt-space-sm"
+    class="@container pb-space-xl pt-space-sm"
   >
     <!-- Hidden until the script runs (and only when there is something to scroll): without the
          script these buttons would do nothing. -->
@@ -136,16 +138,22 @@ const carouselButton =
       class="hidden flex-wrap items-center justify-between gap-x-space-md px-page font-meta-mono text-meta-mono uppercase"
     >
       <button type="button" data-carousel-prev class={carouselButton}>[&nbsp;← prev&nbsp;]</button>
-      <p data-carousel-status aria-live="polite" class="text-on-surface-variant">
-        01 / {String(works.length).padStart(2, '0')}
-      </p>
+      <div class="flex flex-col items-center">
+        <p data-carousel-status aria-live="polite" class="text-on-surface-variant">
+          01 / {String(works.length).padStart(2, '0')}
+        </p>
+        <!-- Keyboard cue for pointer devices (touch has no arrow keys). Turns dark while the
+             carousel has focus, i.e. while the arrow keys are live. Decorative: the track's own
+             aria-label already tells assistive tech. -->
+        <p aria-hidden="true" class="carousel-hint hidden pointer-fine:block">use ← → keys</p>
+      </div>
       <button type="button" data-carousel-next class={carouselButton}>[&nbsp;next →&nbsp;]</button>
     </div>
     <div
       data-carousel-track
       tabindex="0"
-      aria-label="Slides. Scroll sideways or use the arrow keys."
-      class="clip-page relative flex snap-x snap-mandatory gap-space-md overflow-x-auto px-page pt-space-xs"
+      aria-label="Slides. Use the left and right arrow keys, or scroll sideways."
+      class="relative flex snap-x snap-mandatory gap-space-md overflow-x-auto px-[calc((100cqw_-_var(--slide))_/_2)] pt-space-md [--slide:min(68cqw,30rem)] md:[--slide:min(46cqw,36rem)]"
     >
       {
         works.map((work, i) => (
@@ -154,12 +162,12 @@ const carouselButton =
             aria-roledescription="slide"
             aria-label={`${i + 1} of ${works.length}`}
             data-carousel-slide
-            class="flex w-[88%] shrink-0 snap-start flex-col md:w-3/5 lg:w-1/2"
+            class="flex w-[var(--slide)] shrink-0 snap-center snap-always flex-col [transform:scale(var(--carousel-scale,1))]"
             data-placeholder={work.isPlaceholder ? '' : undefined}
           >
             <a href={href(work)} class="group flex flex-col">
               <!-- Fixed stage height so slides of different ratios do not make the page jump. -->
-              <span class="flex h-[60dvh] min-h-64 items-center justify-center bg-surface-container">
+              <span class="carousel-stage flex h-[50dvh] min-h-64 items-center md:h-[60dvh] justify-center bg-surface-container">
                 <Img image={work.cover} class="h-auto max-h-full w-auto max-w-full object-contain" />
               </span>
               <figcaption class="mt-space-sm flex items-baseline justify-between gap-space-md">
@@ -213,15 +221,23 @@ const carouselButton =
     const pad = (n: number) => String(n).padStart(2, '0');
     let shown = -1;
 
-    /** Slide whose left edge is nearest the start of the track; the last one at the very end. */
-    function currentIndex(): number {
+    // Enhanced mode: from now on the horizontal scrollbar is hidden (buttons, arrow keys, clicking
+    // a neighbour and touch all work), and the keyboard hint is allowed to show.
+    carousel.classList.add('is-enhanced');
+
+    /** Horizontal distance (px) from a slide's centre to the track's visible centre. */
+    function offsetFromCentre(slide: HTMLElement): number {
       if (!track) return 0;
-      if (track.scrollLeft + track.clientWidth >= track.scrollWidth - 2) return last;
-      const inset = parseFloat(getComputedStyle(track).paddingLeft) || 0;
+      const middle = track.scrollLeft + track.clientWidth / 2;
+      return slide.offsetLeft + slide.offsetWidth / 2 - middle;
+    }
+
+    /** The slide nearest the centre. (offsetLeft/Width ignore the scale transform, so this is stable.) */
+    function currentIndex(): number {
       let best = 0;
       let bestDistance = Infinity;
       slides.forEach((slide, i) => {
-        const distance = Math.abs(slide.offsetLeft - inset - track.scrollLeft);
+        const distance = Math.abs(offsetFromCentre(slide));
         if (distance < bestDistance) {
           best = i;
           bestDistance = distance;
@@ -230,6 +246,9 @@ const carouselButton =
       return best;
     }
 
+    // Slides shrink continuously with distance from the centre: full size at 0, 80% one slide away.
+    const MIN_SCALE = 0.8;
+
     function update(): void {
       if (!track || !controls || !prev || !next || !status) return;
       // Only offer controls when there is actually something to scroll to.
@@ -237,7 +256,17 @@ const carouselButton =
       controls.classList.toggle('hidden', !scrollable);
       controls.classList.toggle('flex', scrollable);
       if (!scrollable) return;
+
       const index = currentIndex();
+      const first = slides[0];
+      const step = first ? first.offsetWidth + parseFloat(getComputedStyle(track).columnGap || '0') : 1;
+      slides.forEach((slide, i) => {
+        const distance = Math.min(1, Math.abs(offsetFromCentre(slide)) / step);
+        slide.style.setProperty('--carousel-scale', (1 - (1 - MIN_SCALE) * distance).toFixed(3));
+        if (i === index) slide.setAttribute('aria-current', 'true');
+        else slide.removeAttribute('aria-current');
+      });
+
       prev.setAttribute('aria-disabled', String(index === 0));
       next.setAttribute('aria-disabled', String(index === last));
       if (index !== shown) {
@@ -250,10 +279,41 @@ const carouselButton =
       const target = slides.at(Math.min(last, Math.max(0, index)));
       target?.scrollIntoView({
         behavior: reduceMotion.matches ? 'auto' : 'smooth',
-        inline: 'start',
+        inline: 'center',
         block: 'nearest',
       });
     }
+
+    /** Put keyboard focus on the track so the arrow keys work immediately. */
+    function focusTrack(): void {
+      track?.focus({ preventScroll: true });
+    }
+
+    // Clicking a smaller neighbour brings it to the centre; clicking the centred slide follows its
+    // link as usual. Without this script every slide is simply a link.
+    track.addEventListener('click', (event) => {
+      const slide = (event.target as Element | null)?.closest<HTMLElement>('[data-carousel-slide]');
+      const index = slide ? slides.indexOf(slide) : -1;
+      if (index !== -1 && index !== currentIndex()) {
+        event.preventDefault();
+        go(index);
+      }
+    });
+
+    // Autofocus, without stealing focus unexpectedly:
+    //  - arriving on #gallery (a deliberate choice of this view) focuses the carousel;
+    //  - picking "gallery" with the mouse or touch focuses it too;
+    //  - picking it with the arrow keys on the view toggle does NOT, so keyboard users can keep
+    //    arrowing through the toggle. They Tab into the carousel instead.
+    const galleryRadio = document.querySelector<HTMLInputElement>('input[name="view"][value="gallery"]');
+    let pointerAt = 0;
+    document.querySelector('[data-view-root] fieldset')?.addEventListener('pointerdown', () => {
+      pointerAt = Date.now();
+    });
+    galleryRadio?.addEventListener('change', () => {
+      if (galleryRadio.checked && Date.now() - pointerAt < 600) focusTrack();
+    });
+    if (galleryRadio?.checked) focusTrack();
 
     prev.addEventListener('click', () => go(currentIndex() - 1));
     next.addEventListener('click', () => go(currentIndex() + 1));

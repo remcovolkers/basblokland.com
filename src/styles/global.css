@@ -147,18 +147,6 @@
   }
 }
 
-/* Clips a full-width scroller to the page content edges (the gutters), so slides that have scrolled
-   away do not poke into the margin. 6px of slack keeps focus rings from being cut off. */
-@utility clip-page {
-  clip-path: inset(-6px calc(var(--spacing-gutter) - 6px));
-  @media (min-width: 48rem) {
-    clip-path: inset(-6px calc(var(--spacing-margin-tablet) - 6px));
-  }
-  @media (min-width: 64rem) {
-    clip-path: inset(-6px calc(var(--spacing-margin-desktop) - 6px));
-  }
-}
-
 /* Stitch names, kept for 1:1 markup. Only effective on notched devices (viewport-fit=cover). */
 @utility pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -206,16 +194,49 @@
   a:focus-visible .media-gray {
     filter: none;
   }
+}
 
-  .view-option:has(input:checked) {
-    color: var(--color-secondary);
-    text-decoration: underline;
-    text-underline-offset: 4px;
-  }
-  .view-option:has(input:focus-visible) {
-    outline: 2px solid currentColor;
-    outline-offset: 3px;
-  }
+/* State rules for the view toggle and the gallery carousel.
+   Deliberately UNLAYERED, like the toggle rule further down: Tailwind's utilities live in a later
+   cascade layer, so a layered rule here would silently lose to a utility on the same element
+   (e.g. an active toggle option's colour to `text-on-surface-variant`). Unlayered always wins. */
+
+/* Active view option: accent colour (active state) plus an underline, so colour is not the only cue. */
+.view-option:has(input:checked) {
+  color: var(--color-secondary);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.view-option:has(input:focus-visible) {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+/* The scrollbar is hidden only once the script has enhanced the carousel: without JavaScript it is
+   the visible cue that the strip scrolls sideways. */
+.is-enhanced [data-carousel-track] {
+  scrollbar-width: none;
+}
+.is-enhanced [data-carousel-track]::-webkit-scrollbar {
+  display: none;
+}
+
+/* The track takes focus so the arrow keys work at once. Its focus ring is drawn around the centred
+   slide's image (an outline around the full-width track would be meaningless), and the keyboard
+   hint darkens. Uses :focus, not :focus-visible, on purpose: focus is often programmatic (after a
+   click or on arrival), and the cue that the arrow keys are live should show then as well. */
+[data-carousel-track]:focus {
+  outline: none;
+}
+[data-carousel-track]:focus [aria-current='true'] .carousel-stage {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+.carousel-hint {
+  color: var(--color-outline);
+}
+[data-carousel]:has([data-carousel-track]:focus) .carousel-hint {
+  color: var(--color-primary);
 }
 
 /* List / Grid / Gallery toggle. Pure CSS: a radio group inside .view-root decides which panel is
