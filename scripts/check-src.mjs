@@ -41,8 +41,11 @@ const email = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+/g;
 const instagramProfile = /instagram\.com\/(?!\$\{)[A-Za-z0-9_.]+/gi;
 const SKIP = /(^|\/)(package-lock\.json|node_modules|dist|\.git|\.astro)(\/|$)|\.(png|jpe?g|webp|avif|woff2?|ico|svgz)$/i;
 
+// CLAUDE.md documents the real contact details on purpose: Remco confirmed they may be public.
+// Code, fixtures and docs still must not contain them (they live in Sanity siteSettings).
+const EXEMPT = new Set(['CLAUDE.md']);
 const tracked = new Set(git('ls-files'));
-const candidates = git('ls-files', '-co', '--exclude-standard').filter((f) => !SKIP.test(f));
+const candidates = git('ls-files', '-co', '--exclude-standard').filter((f) => !SKIP.test(f) && !EXEMPT.has(f));
 for (const file of candidates) {
   let text;
   try {
